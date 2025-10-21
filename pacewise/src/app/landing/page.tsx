@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center px-4 py-8">
+    <main className="min-h-screen bg-white flex items-center justify-center px-4 py-8 overflow-x-hidden">
       <div className="w-full max-w-7xl">
         {/* Desktop / Tablet */}
         <div className="hidden md:block">
