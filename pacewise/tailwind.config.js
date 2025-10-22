@@ -1,12 +1,11 @@
 /** @type {import('tailwindcss').Config} */
+const animate = require("tailwindcss-animate");
+
 module.exports = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: ["class"],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {},
   },
-  plugins: [
-    require('tailwind-scrollbar-hide'),
-  ],
+  plugins: [animate, require("tailwind-scrollbar-hide")],
 };
