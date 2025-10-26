@@ -11,11 +11,11 @@ function header() {
 
 
     const title_decide = () => {
-        if (path == '/dashboard/notes'){
+        if (path == '/main/notes'){
             setTitle("Notes");
-        } else if (path == "/dashboard/study_schedule"){
+        } else if (path == "/main/study_schedule"){
             setTitle("Study Schedule");
-        } else if (path == "/dashboard/practice_test"){
+        } else if (path == "/main/practice_test"){
             setTitle("Practice Test");
         }
 

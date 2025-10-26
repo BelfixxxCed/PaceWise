@@ -15,11 +15,11 @@ function Sidebar() {
 
 
     const title_decide = () => {
-        if (path == '/dashboard/notes'){
+        if (path == '/main/notes'){
             setTitle(2);
-        } else if (path == "/dashboard/study_schedule"){
+        } else if (path == "/main/study_schedule"){
             setTitle(1);
-        } else if (path == "/dashboard/practice_test"){
+        } else if (path == "/main/practice_test"){
             setTitle(3);
         }
 
@@ -50,7 +50,7 @@ function Sidebar() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 w-full px-2">
-          <a href="/dashboard/dashboard" className={`rounded-lg transition-all duration-200 py-2 px-3 ${title == 0 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"}  flex items-center gap-3 font-normal  group/item`}>
+          <a href="/main/dashboard" className={`rounded-lg transition-all duration-200 py-2 px-3 ${title == 0 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"}  flex items-center gap-3 font-normal  group/item`}>
             <div className='w-10 h-10 flex items-center justify-center flex-shrink-0'>
               <Image 
                 src="/reusable_ui_images/dashboard.svg" 
@@ -65,7 +65,7 @@ function Sidebar() {
             </p>
           </a>
 
-          <a href="/dashboard/study_schedule" className={`${title == 1 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
+          <a href="/main/study_schedule" className={`${title == 1 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center flex-shrink-0'>
               <Image 
                 src="/reusable_ui_images/study_schedule.svg" 
@@ -80,7 +80,7 @@ function Sidebar() {
             </p>
           </a>
 
-          <a href="/dashboard/notes" className={`${title == 2 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
+          <a href="/main/notes" className={`${title == 2 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center flex-shrink-0'>
               <Image 
                 src="/reusable_ui_images/notes.svg" 
@@ -95,7 +95,7 @@ function Sidebar() {
             </p>
           </a>
 
-          <a href="/dashboard/practice_test" className={`${title == 3 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
+          <a href="/main/practice_test" className={`${title == 3 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center flex-shrink-0'>
               <Image 
                 src="/reusable_ui_images/practice_test.svg" 
