@@ -17,7 +17,7 @@ export default function ContentCard({ variant = "desktop" }: ContentCardProps) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/main/dashboard`, // redirect after login
+          redirectTo: `${window.location.origin}/main/dashboard`, 
         },
       });
 
