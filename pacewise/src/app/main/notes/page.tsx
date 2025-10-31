@@ -1,7 +1,12 @@
+'use client'
 import React from 'react'
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+
 
 function Page() {
+  const router = useRouter();
+
 
   const Subjects = [
     {
@@ -65,10 +70,14 @@ function Page() {
     return 'just now';
   };
 
+  const enterNotebook = (val : string) => {
+    router.push(`/main/notes/notes_with_content?subject_id=${val}`);
+  }
+
   return (
     <div>
       {/* Nav section */}
-      <div className='mx-30 mt-15'> 
+      <div className='mx-30 mt-10'> 
         <div className='flex flex-row justify-between relative'>
           <div className='poppins-bold ml-8 border-b-3 px-3 border-[#71D285] w-min'>
             Notes
@@ -89,25 +98,28 @@ function Page() {
       </div>
 
       {/* Main content */}
-      <div className='mx-30 gap-y-5 justify-evenly flex flex-wrap mt-15'>
+      <div className='mx-30 gap-y-5 gap-x-10 justify-evenly flex flex-wrap mt-10'>
         {Subjects.map((subject) => (
-          <div key={subject.subject_id} className='h-65 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden'>
-            {/* Upper part of card */}
-            <div className='h-[35%] bg-[#71D285] relative'>
-              <div className='text-white poppins-bold bottom-2 right-2 absolute'>
-                {timeAgo(subject.date_created)}
-              </div>
-            </div>
-
-            {/* Lower part of card */}
-            <div>
-              <div className='mx-3 my-2'>
-                <div className='poppins-extrabold text-3xl text-[#3E6E48]'>
-                  {subject.subject_name}
+          <button key={subject.subject_id} onClick={() => enterNotebook(subject.subject_id)}>
+            <div className='hover:shadow-2xl shadow-[#71D285] h-65 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden'>
+              {/* Upper part of card */}
+              <div className='h-[35%] bg-[#71D285] relative'>
+                <div className='text-white poppins-bold bottom-2 right-2 absolute'>
+                  {timeAgo(subject.date_created)}
                 </div>
               </div>
-            </div>
-          </div>
+
+              {/* Lower part of card */}
+              <div>
+                <div className='mx-3 my-2'>
+                  <div className='poppins-extrabold text-3xl text-[#3E6E48]'>
+                    {subject.subject_name}
+                  </div>
+                </div>
+              </div>
+            </div>            
+          </button>
+
         ))}
       </div>
     </div>
