@@ -112,7 +112,7 @@ function Page() {
               {/* Lower part of card */}
               <div>
                 <div className='mx-3 my-2'>
-                  <div className='poppins-extrabold text-3xl text-[#3E6E48]'>
+                  <div className='poppins-extrabold text-3xl text-[#3E6E48] flex'>
                     {subject.subject_name}
                   </div>
                 </div>
