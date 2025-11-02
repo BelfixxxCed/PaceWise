@@ -50,8 +50,10 @@ function Sidebar() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 w-full px-2">
+
           <a href="/Main/dashboard" className={`rounded-lg transition-all duration-200 py-2 px-3 ${title == 0 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"}  flex items-center gap-3 font-normal  group/item`}>
             <div className='w-10 h-10 flex items-center justify-center shrink-0'>
+
               <Image 
                 src="/reusable_ui_images/dashboard.svg" 
                 alt="dashboard page button" 
@@ -65,8 +67,10 @@ function Sidebar() {
             </p>
           </a>
 
+
           <a href="/Main/study_schedule" className={`${title == 1 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center shrink-0'>
+
               <Image 
                 src="/reusable_ui_images/study_schedule.svg" 
                 alt="study schedule button" 
@@ -80,8 +84,11 @@ function Sidebar() {
             </p>
           </a>
 
+
           <a href="/Main/notes" className={`${title == 2 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center shrink-0'>
+
+
               <Image 
                 src="/reusable_ui_images/notes.svg" 
                 alt="notes button" 
@@ -95,8 +102,10 @@ function Sidebar() {
             </p>
           </a>
 
+
           <a href="/Main/practice_test" className={`${title == 3 ? "bg-[#E9F5FE] font-bold" : "hover:bg-[#E9F5FE] hover:font-bold"} rounded-lg transition-all duration-200 py-2 px-3 hover:bg-[#E9F5FE] flex items-center gap-3 font-normal hover:font-bold group/item`}>
             <div className='w-10 h-10 flex items-center justify-center shrink-0'>
+
               <Image 
                 src="/reusable_ui_images/practice_test.svg" 
                 alt="practice test button" 

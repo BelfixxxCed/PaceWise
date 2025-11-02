@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 
-function Header() {
+function header() {
 
     const [title, setTitle] = useState("Dashboard")
     const path = usePathname();
@@ -46,4 +46,4 @@ function Header() {
   )
 }
 
-export default Header
+export default header

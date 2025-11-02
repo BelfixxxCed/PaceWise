@@ -36,7 +36,7 @@ export const ProgressOverview = ({ courses, isLoading = false }: ProgressOvervie
           {courses.map((course, index) => (
             <div key={course.id || course.name || index} className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                   <Layers className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 flex items-center justify-between">
@@ -46,7 +46,7 @@ export const ProgressOverview = ({ courses, isLoading = false }: ProgressOvervie
               </div>
               {/* Progress bar aligned with course name */}
               <div className="flex items-center gap-3">
-                <div className="w-10 flex-shrink-0" /> {/* Spacer for icon width */}
+                <div className="w-10 shrink-0" /> {/* Spacer for icon width */}
                 <Progress value={course.progress} className="h-2 flex-1" />
               </div>
             </div>
