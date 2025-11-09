@@ -24,17 +24,23 @@ function header() {
     }
 
     const verifyUser = async () => {
-        const {data, error} = await supabase.auth.getUser();
-        if (error){
-            console.log("There was an error in checking your authorization: ", error.message);
-            alert("There was an error in checking your authorization: ");
-            router.push("\landing");
-        }  
+    const { data, error } = await supabase.auth.getUser();
 
-        if (data.user.aud != "authenticated"){
-            router.push("/landing");
-        }
+    if (error) {
+        console.log("There was an error checking your authorization:", error.message);
+        alert("There was an error checking your authorization.");
+        router.push("/landing");
+        return;
     }
+
+    if (!data.user || data.user.aud !== "authenticated") {
+        router.push("/landing");
+        return;
+    }
+
+    console.log("User:", data.user);
+    };
+
 
 
     useEffect(() => {
