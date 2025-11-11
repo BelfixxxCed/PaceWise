@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import supabase from '@/supabase/supabase_client';
 
 
 function header() {
 
     const [title, setTitle] = useState("Dashboard")
     const path = usePathname();
-
+    const router = useRouter();
 
     const title_decide = () => {
         if (path == '/main/notes'){
@@ -21,8 +23,29 @@ function header() {
 
     }
 
+    const verifyUser = async () => {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+        console.log("There was an error checking your authorization:", error.message);
+        alert("There was an error checking your authorization.");
+        router.push("/landing");
+        return;
+    }
+
+    if (!data.user || data.user.aud !== "authenticated") {
+        router.push("/landing");
+        return;
+    }
+
+    console.log("User:", data.user);
+    };
+
+
+
     useEffect(() => {
         title_decide();
+        verifyUser();
     }, [])
 
   return (

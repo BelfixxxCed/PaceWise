@@ -2,11 +2,13 @@ import React from 'react'
 import Header from '../../components/dashboard/header'
 import Sidebar from '../../components/dashboard/sidebar'
 
+
 function layout({
     children
 }: {
     children : React.ReactNode
 }) {
+
   return (
     <div className='flex w-[100%]'>
         {/* This is for the left side */}
