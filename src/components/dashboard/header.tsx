@@ -29,12 +29,12 @@ function header() {
     if (error) {
         console.log("There was an error checking your authorization:", error.message);
         alert("There was an error checking your authorization.");
-        router.push("/landing");
+        router.push("/");
         return;
     }
 
     if (!data.user || data.user.aud !== "authenticated") {
-        router.push("/landing");
+        router.push("/");
         return;
     }
 
