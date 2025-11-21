@@ -1,12 +1,16 @@
 "use client";
+
 import React from "react";
 import Image from "next/image";
+import supabase from "@/supabase/supabase_client";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 function Sidebar() {
   const [title, setTitle] = useState(0);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const path = usePathname();
+  const router = useRouter();
 
   const title_decide = () => {
     if (path == "/main/notes") {
@@ -15,6 +19,27 @@ function Sidebar() {
       setTitle(1);
     } else if (path == "/main/practice_test") {
       setTitle(3);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      const res = await fetch("/api/auth/signout", { method: "GET" });
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push("/signin");
+      } else {
+        console.error(data.error);
+        alert("Sign-out failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during sign-out:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -145,9 +170,14 @@ function Sidebar() {
           />
         </div>
 
-        <div className="text-white poppins-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden ml-2">
-          Logout
-        </div>
+        <button
+          className={`text-white poppins-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden ml-2 ${
+            isSigningOut ? "opacity-50 pointer-events-none disabled" : ""
+          }`}
+          onClick={handleSignOut}
+        >
+          {isSigningOut ? "Logging out..." : "Log out"}
+        </button>
       </div>
     </div>
   );
