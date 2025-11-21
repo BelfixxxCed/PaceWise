@@ -1,7 +1,8 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
+import { Pagination } from '@/components/ui/pagination';
 
 
 function Page() {
@@ -46,6 +47,21 @@ function Page() {
       subject_name: "Economics 101"
     }
   ];
+
+  
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(Subjects.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedSubjects = Subjects.slice(startIndex, endIndex);
+
+  
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   // Type-safe "time ago" function
   const timeAgo = (date: string): string => {
@@ -99,7 +115,7 @@ function Page() {
 
       {/* Main content */}
       <div className='mx-30 gap-y-5 gap-x-10 justify-evenly flex flex-wrap mt-10'>
-        {Subjects.map((subject) => (
+        {paginatedSubjects.map((subject) => (
           <button key={subject.subject_id} onClick={() => enterNotebook(subject.subject_id)}>
             <div className='hover:shadow-2xl shadow-[#71D285] h-65 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden'>
               {/* Upper part of card */}
@@ -121,6 +137,16 @@ function Page() {
           </button>
 
         ))}
+      </div>
+
+     
+      <div className="h-20" />
+
+      
+      <div className="fixed left-0 right-0 bottom-0 flex justify-center z-50 pointer-events-none">
+        <div className="mx-30 w-full flex justify-center pointer-events-auto">
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </div>
       </div>
     </div>
   )
