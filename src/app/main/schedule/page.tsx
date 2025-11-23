@@ -1,10 +1,11 @@
 "use client";
 
 // import { Metadata } from "next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SubjectsTable from "@/components/schedule/subjects-table";
 import AddSubjectForm from "@/components/schedule/add-subject-form";
 import SuccessModal from "@/components/schedule/success-modal";
+import { Pagination } from "@/components/ui/pagination";
 import { Search } from "lucide-react";
 
 // export const metadata: Metadata = {
@@ -99,9 +100,12 @@ const initialCourses: Subject[] = [
   },
 ];
 
+const ITEMS_PER_PAGE = 5;
+
 export default function Page() {
   const [subjects, setSubjects] = useState<Subject[]>(initialCourses);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleAddSubject = (newSubject: Omit<Subject, "id">) => {
     const subject: Subject = {
@@ -126,6 +130,19 @@ export default function Page() {
     setSubjects(subjects.filter((s) => s.id !== id));
   };
 
+  
+  const totalPages = Math.ceil(subjects.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedSubjects = subjects.slice(startIndex, endIndex);
+
+  
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   return (
     <div>
       <div className="flex-1 overflow-auto p-8">
@@ -142,7 +159,7 @@ export default function Page() {
               </div>
             </div>
             <SubjectsTable
-              subjects={subjects}
+              subjects={paginatedSubjects}
               onEdit={handleEditSubject}
               onDelete={handleDeleteSubject}
             />
@@ -153,6 +170,16 @@ export default function Page() {
         </div>
       </div>
       {showSuccessModal && <SuccessModal onClose={handleCloseModal} />}
+
+      
+      <div className="h-20" />
+
+      
+      <div className="fixed left-0 right-0 bottom-0 flex justify-center z-50 pointer-events-none">
+        <div className="mx-8 w-full flex justify-center pointer-events-auto">
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </div>
+      </div>
     </div>
   );
 }
