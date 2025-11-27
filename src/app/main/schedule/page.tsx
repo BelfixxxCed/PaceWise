@@ -5,6 +5,7 @@ import SubjectsTable from "@/components/schedule/subjects-table";
 import AddSubjectForm from "@/components/schedule/add-subject-form";
 import SuccessModal from "@/components/schedule/success-modal";
 import LoadingModal from "@/components/loading_modal";
+import { Pagination } from "@/components/ui/pagination";
 import { Search } from "lucide-react";
 import supabase from "@/supabase/supabase_client";
 import {
@@ -27,6 +28,8 @@ interface Subject {
   endPeriod: "AM" | "PM";
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export default function Page() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -34,12 +37,12 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Get current user and fetch subjects
   useEffect(() => {
     async function initializeData() {
       try {
-        // Get current user
         const {
           data: { user },
           error: userError,
@@ -54,7 +57,6 @@ export default function Page() {
 
         setUserId(user.id);
 
-        // Fetch subjects using the query function
         const data = await getAllSubjects(user.id);
         const transformedSubjects = data.map((subject) =>
           transformSubjectFromDB(subject)
@@ -71,7 +73,6 @@ export default function Page() {
     initializeData();
   }, []);
 
-  // Add new subject
   const handleAddSubject = async (newSubject: Omit<Subject, "id">) => {
     if (!userId) {
       setError("You must be signed in to add subjects");
@@ -79,14 +80,10 @@ export default function Page() {
     }
 
     try {
-      // Transform and create subject
       const subjectData = transformSubjectToDB(newSubject, userId);
       const createdSubject = await createSubject(subjectData);
-
-      // Add to local state
       const transformedSubject = transformSubjectFromDB(createdSubject);
       setSubjects([transformedSubject, ...subjects]);
-
       setShowSuccessModal(true);
       setError(null);
     } catch (err) {
@@ -95,10 +92,8 @@ export default function Page() {
     }
   };
 
-  // Edit subject
   const handleEditSubject = async (updatedSubject: Subject) => {
     try {
-      // Prepare update data
       const updates = {
         subject_name: updatedSubject.title,
         start_time: updatedSubject.startTime,
@@ -110,8 +105,6 @@ export default function Page() {
       };
 
       await updateSubject(updatedSubject.id, updates);
-
-      // Update local state
       setSubjects(
         subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s))
       );
@@ -122,12 +115,9 @@ export default function Page() {
     }
   };
 
-  // Delete subject
   const handleDeleteSubject = async (id: string) => {
     try {
       await deleteSubject(id);
-
-      // Update local state
       setSubjects(subjects.filter((s) => s.id !== id));
       setError(null);
     } catch (err) {
@@ -140,20 +130,23 @@ export default function Page() {
     setShowSuccessModal(false);
   };
 
-  // Filter subjects based on search query
   const filteredSubjects = subjects.filter((subject) =>
     subject.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedSubjects = filteredSubjects.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#71D285] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your subjects...</p>
-        </div>
-      </div>
-    );
+    return <LoadingModal message="Loading your subjects..." />;
   }
 
   return (
@@ -180,7 +173,7 @@ export default function Page() {
               </div>
             </div>
             <SubjectsTable
-              subjects={filteredSubjects}
+              subjects={paginatedSubjects}
               onEdit={handleEditSubject}
               onDelete={handleDeleteSubject}
             />
@@ -191,6 +184,18 @@ export default function Page() {
         </div>
       </div>
       {showSuccessModal && <SuccessModal onClose={handleCloseModal} />}
+
+      <div className="h-20" />
+
+      <div className="fixed left-0 right-0 bottom-0 flex justify-center z-50 pointer-events-none">
+        <div className="mx-8 w-full flex justify-center pointer-events-auto">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </div>
     </div>
   );
 }
