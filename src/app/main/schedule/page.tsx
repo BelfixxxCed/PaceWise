@@ -5,7 +5,15 @@ import SubjectsTable from "@/components/schedule/subjects-table";
 import AddSubjectForm from "@/components/schedule/add-subject-form";
 import SuccessModal from "@/components/schedule/success-modal";
 import { Search } from "lucide-react";
-import supabase, { subjectsApi } from "@/supabase/supabase_client";
+import supabase from "@/supabase/supabase_client";
+import {
+  getAllSubjects,
+  createSubject,
+  updateSubject,
+  deleteSubject,
+  transformSubjectFromDB,
+  transformSubjectToDB,
+} from "@/components/schedule/schedule_supabase_query";
 
 interface Subject {
   id: string;
@@ -26,22 +34,11 @@ export default function Page() {
   const [userId, setUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Transform database format to component format
-  const transformSubject = (dbSubject: any): Subject => ({
-    id: dbSubject.subject_id,
-    title: dbSubject.subject_name,
-    startTime: dbSubject.start_time || "01",
-    startMinutes: dbSubject.start_minutes || "00",
-    startPeriod: (dbSubject.start_period || "PM") as "AM" | "PM",
-    endTime: dbSubject.end_time || "02",
-    endMinutes: dbSubject.end_minutes || "00",
-    endPeriod: (dbSubject.end_period || "PM") as "AM" | "PM",
-  });
-
   // Get current user and fetch subjects
   useEffect(() => {
     async function initializeData() {
       try {
+        // Get current user
         const {
           data: { user },
           error: userError,
@@ -55,8 +52,13 @@ export default function Page() {
         }
 
         setUserId(user.id);
-        const data = await subjectsApi.getAll(user.id);
-        setSubjects((data || []).map(transformSubject));
+
+        // Fetch subjects using the query function
+        const data = await getAllSubjects(user.id);
+        const transformedSubjects = data.map((subject) =>
+          transformSubjectFromDB(subject)
+        );
+        setSubjects(transformedSubjects);
       } catch (err) {
         console.error("Error initializing:", err);
         setError(err instanceof Error ? err.message : "Failed to load data");
@@ -76,18 +78,14 @@ export default function Page() {
     }
 
     try {
-      const data = await subjectsApi.create({
-        user_id: userId,
-        subject_name: newSubject.title,
-        start_time: newSubject.startTime,
-        start_minutes: newSubject.startMinutes,
-        start_period: newSubject.startPeriod,
-        end_time: newSubject.endTime,
-        end_minutes: newSubject.endMinutes,
-        end_period: newSubject.endPeriod,
-      });
+      // Transform and create subject
+      const subjectData = transformSubjectToDB(newSubject, userId);
+      const createdSubject = await createSubject(subjectData);
 
-      setSubjects([transformSubject(data), ...subjects]);
+      // Add to local state
+      const transformedSubject = transformSubjectFromDB(createdSubject);
+      setSubjects([transformedSubject, ...subjects]);
+
       setShowSuccessModal(true);
       setError(null);
     } catch (err) {
@@ -99,7 +97,8 @@ export default function Page() {
   // Edit subject
   const handleEditSubject = async (updatedSubject: Subject) => {
     try {
-      await subjectsApi.update(updatedSubject.id, {
+      // Prepare update data
+      const updates = {
         subject_name: updatedSubject.title,
         start_time: updatedSubject.startTime,
         start_minutes: updatedSubject.startMinutes,
@@ -107,8 +106,11 @@ export default function Page() {
         end_time: updatedSubject.endTime,
         end_minutes: updatedSubject.endMinutes,
         end_period: updatedSubject.endPeriod,
-      });
+      };
 
+      await updateSubject(updatedSubject.id, updates);
+
+      // Update local state
       setSubjects(
         subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s))
       );
@@ -122,7 +124,9 @@ export default function Page() {
   // Delete subject
   const handleDeleteSubject = async (id: string) => {
     try {
-      await subjectsApi.delete(id);
+      await deleteSubject(id);
+
+      // Update local state
       setSubjects(subjects.filter((s) => s.id !== id));
       setError(null);
     } catch (err) {
