@@ -61,7 +61,7 @@ export default function MyEditorPage() {
     });
 
     const handleEditorChange = (newValue: Value) => {
-        console.log('Editor content changed:', newValue);
+        // console.log('Editor content changed:', newValue);
         try {
       
             localStorage.setItem('editorContent', JSON.stringify(newValue));
