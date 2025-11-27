@@ -11,6 +11,7 @@ function header() {
     const [title, setTitle] = useState("Dashboard")
     const path = usePathname();
     const router = useRouter();
+    const [name, setName] = useState("Loading...")
 
     const title_decide = () => {
         if (path == '/main/notes'){
@@ -24,7 +25,7 @@ function header() {
     }
 
     const verifyUser = async () => {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser(); //This needs to be changed into getSession but in a way that it is not disruptive
 
     if (error) {
         console.log("There was an error checking your authorization:", error.message);
@@ -38,7 +39,12 @@ function header() {
         return;
     }
 
-    console.log("User:", data.user);
+    const fullName =
+        data.user.user_metadata?.full_name ||
+        data.user.identities?.[0]?.identity_data?.full_name ||
+        data.user.identities?.[0]?.identity_data?.name ||
+        "";
+    setName(fullName)
     };
 
 
@@ -56,7 +62,7 @@ function header() {
         <div>
             <ul className='flex flex-row items-center gap-4'>
                 <li className='poppins-semibold'>
-                    Firstname Lastname
+                    {name}
                 </li>
                 <li>
                     {/* Insert profile pic here */}
