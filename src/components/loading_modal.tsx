@@ -1,6 +1,3 @@
-// Location: src/components/loading_modal.tsx
-// Reusable loading modal component
-
 interface LoadingModalProps {
   message?: string;
   showSpinner?: boolean;
