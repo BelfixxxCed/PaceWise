@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SubjectsTable from "@/components/schedule/subjects-table";
 import AddSubjectForm from "@/components/schedule/add-subject-form";
 import SuccessModal from "@/components/schedule/success-modal";
+import LoadingModal from "@/components/loading_modal";
 import { Search } from "lucide-react";
 import supabase from "@/supabase/supabase_client";
 import {
