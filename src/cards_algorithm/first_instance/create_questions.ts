@@ -1,64 +1,49 @@
 import supabase from "@/supabase/supabase_client";
 import { SendText } from "@/LLM_Request_FrontEnd/LLM_Request_Frontend";
+import { slateToPlainText } from "@/lib/parseNotes";
 
 export const Create_Questions = async (subject_id : String) => {
 
     // In here we query the data
     const {data, error} = await supabase
-        .from("subjects")
-        .select("*")
+        .from("notes_pages")
+        .select("notes_json")
         .eq("subject_id", subject_id);
 
     if(error){
         console.log("There was an error in getting the subjects! Error message: ", error.message);
+        return;
     }
 
-    // Insert function ni johnric
 
+    const parsed_notes_per_page = data?.map(each => {
+        const slateObject = JSON.parse(each.notes_json); // <-- parse the JSON string
+        const parsed_data = slateToPlainText(slateObject);
+        return parsed_data;
+    });
 
-
-
-    // In here assuming may data na tayo na parsed
-    // Please delete this variable below
-    const deleteMe_fakeParsedData = `🧬 What You Will See (Predictions)
-1. Cooperative clusters emerge
-
-Even if defectors dominate globally, pockets of cooperation survive like islands.
-
-2. New strategies evolve that Axelrod never observed
-
-For example:
-
-“Fence strategies”: agents who defect to outside nodes but cooperate internally
-
-“Conditional cooperators with neighbourhood memory”
-
-“Vengeful cooperators” who sacrifice themselves to punish defectors
-
-These do not appear in fully-mixed models.
-
-3. Network topology affects evolution
-
-Small-world networks massively help cooperation.
-        Scale-free networks allow “hub enforcers”.`
-
-    const LLM_reply = await SendText(deleteMe_fakeParsedData);
-    console.log("LLM Reply: ", LLM_reply);
-
+    const LLM_payload = parsed_notes_per_page?.join('\n') || '';
+    const LLM_reply = await SendText(JSON.stringify(LLM_payload)) as any[];
 
     // This is where we set to the session variables the new questions:
     sessionStorage.setItem("new_generate_quiz_items", JSON.stringify(LLM_reply));
 
+    const data_fix_column = LLM_reply.map(each => {
+        return {
+            "question" : each.Question,
+            "answer" : each.Answer,
+            "options" : each.Options,
+            "subject_id": subject_id
+        }
+    })
+    // Save in Supabase the new generated questions
+    const {error : error_uploading_data} = await supabase
+        .from("questions")
+        .insert(data_fix_column);
 
-    // Testing area, please delete everything after this
-
-    // const editorRaw = localStorage.getItem("editor");
-    // const {error: error1} = await supabase.from("notes_pages").insert({
-    //     "notes_json": editorRaw,
-    //     "subject_id" : subject_id,
-    // })
-    // if(error1){
-    //     console.log("Error beh, ", error1.message);
-    // }
+    if (error_uploading_data){
+        console.log("There was an error in uploading the questions data: ", error_uploading_data.message);
+        return;
+    }
 
 }
