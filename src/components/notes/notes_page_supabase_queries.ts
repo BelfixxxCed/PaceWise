@@ -20,7 +20,6 @@ export const GET_subjects = async () => {
         }
     })
 
-    console.log("Datetime: ", fixed_datetime);
     return fixed_datetime
 }
 
