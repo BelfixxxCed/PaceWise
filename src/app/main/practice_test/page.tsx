@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSubjectsProgress } from '@/lib/subjectsProgress';
+import supabase from '@/supabase/supabase_client';
 
 export default function PracticeTestPage() {
   const router = useRouter();
@@ -13,6 +15,16 @@ export default function PracticeTestPage() {
     { id: 5, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
     { id: 6, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
   ]);
+
+  const get_subject_data = async () => {
+    const {data : data_user, error : error_user} = await supabase.auth.getUser();
+    if(error_user){
+      console.log("There was an error in getting user: ", error_user.message);
+      return;
+    }
+    const data = await getSubjectsProgress(data_user.user.id);
+    setSubjects(data);
+  }
 
   useEffect(() => {
     // Check localStorage for completed quizzes
@@ -32,6 +44,7 @@ export default function PracticeTestPage() {
       return subject;
     });
     setSubjects(updatedSubjects);
+    get_subject_data()
   }, []);
 
   const handleTakeQuiz = (id: number) => {
