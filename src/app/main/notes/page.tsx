@@ -10,6 +10,7 @@ type Subject = {
   subject_id: string;
   subject_name: string;
   date_created: string;
+  date_created_difference: string;
 };
 
 function Page() {
@@ -57,7 +58,7 @@ function Page() {
   ];
 
   
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 6;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(Subjects.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -117,11 +118,11 @@ function Page() {
       <div className='mx-30 gap-y-5 gap-x-10 justify-evenly flex flex-wrap mt-10'>
         {paginatedSubjects.map((subject) => (
           <button key={subject.subject_id} onClick={() => enterNotebook(subject.subject_id)}>
-            <div className='hover:shadow-2xl shadow-[#71D285] h-65 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden'>
+            <div className='hover:shadow-2xl shadow-[#71D285] h-45 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden'>
               {/* Upper part of card */}
               <div className='h-[35%] bg-[#71D285] relative'>
                 <div className='text-white poppins-bold bottom-2 right-2 absolute'>
-                  {subject.date_created}
+                  {subject.date_created_difference}
                 </div>
               </div>
 
@@ -130,6 +131,9 @@ function Page() {
                 <div className='mx-3 my-2'>
                   <div className='poppins-extrabold text-3xl text-[#3E6E48] flex'>
                     {subject.subject_name}
+                  </div>
+                  <div className='flex poppins-regular text-[#8E8B8B]'>
+                    {subject.date_created}
                   </div>
                 </div>
               </div>

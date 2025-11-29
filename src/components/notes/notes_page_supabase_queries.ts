@@ -15,7 +15,8 @@ export const GET_subjects = async () => {
     const fixed_datetime = data.map(each => {
         return {
             ...each,
-            date_created : timeAgo(each.date_created)
+            date_created_difference : timeAgo(each.date_created),
+            date_created : formatDate(each.date_created)
         }
     })
 
@@ -62,4 +63,15 @@ const timeAgo = (timestamp: string | Date): string => {
 
   const years = Math.floor(diff / year);
   return years === 1 ? "1 year ago" : `${years} years ago`;
+};
+
+const formatDate = (timestamp: string | Date): string => {
+  const date = new Date(timestamp);
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",   // "Fri"
+    year: "numeric",    // "2025"
+    month: "short",     // "Oct"
+    day: "numeric"      // "11"
+  });
 };
