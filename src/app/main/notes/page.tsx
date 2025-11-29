@@ -60,7 +60,7 @@ function Page() {
   
   const ITEMS_PER_PAGE = 6;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(Subjects.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(subjects.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedSubjects = subjects.slice(startIndex, endIndex);
