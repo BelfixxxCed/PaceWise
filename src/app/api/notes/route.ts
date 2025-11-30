@@ -13,14 +13,23 @@ async function authenticateRequest(req: Request) {
     : null;
 
   if (!token) {
-    return { error: NextResponse.json({ error: "Missing auth token" }, { status: 401 }) };
+    return {
+      error: NextResponse.json(
+        { error: "Missing auth token" },
+        { status: 401 }
+      ),
+    };
   }
 
-  const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(token);
-  
+  const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(
+    token
+  );
+
   if (authError || !userData?.user) {
     console.error("Authentication error:", authError);
-    return { error: NextResponse.json({ error: "Invalid token" }, { status: 401 }) };
+    return {
+      error: NextResponse.json({ error: "Invalid token" }, { status: 401 }),
+    };
   }
 
   return { userId: userData.user.id };
@@ -28,10 +37,12 @@ async function authenticateRequest(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    // Parse and validate body
     const text = await req.text();
     if (!text) {
-      return NextResponse.json({ error: "Missing request body" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing request body" },
+        { status: 400 }
+      );
     }
 
     let body: { subject_id?: string | null; notes_json?: any };
@@ -43,10 +54,12 @@ export async function POST(req: Request) {
 
     const { subject_id = null, notes_json = null } = body;
     if (!notes_json) {
-      return NextResponse.json({ error: "Missing notes_json" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing notes_json" },
+        { status: 400 }
+      );
     }
 
-    // Authenticate
     const authResult = await authenticateRequest(req);
     if ("error" in authResult) return authResult.error;
     const { userId } = authResult;
@@ -65,7 +78,10 @@ export async function POST(req: Request) {
 
       if (fetchError) {
         console.error("Error checking existing note:", fetchError);
-        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+        return NextResponse.json(
+          { error: fetchError.message },
+          { status: 500 }
+        );
       }
 
       if (existingNote) {
@@ -99,7 +115,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Saved", data }, { status: 200 });
   } catch (err) {
     console.error("API error saving notes:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -133,6 +152,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ data: data ?? null }, { status: 200 });
   } catch (err) {
     console.error("API error fetching notes:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
