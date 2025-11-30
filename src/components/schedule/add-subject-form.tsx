@@ -193,8 +193,8 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded p-3">
             <ul className="text-red-600 text-sm space-y-1">
-              {errors.map((error, question_id) => (
-                <li key={question_id}>• {error}</li>
+              {errors.map((error, idx) => (
+                <li key={idx}>• {error}</li>
               ))}
             </ul>
           </div>
