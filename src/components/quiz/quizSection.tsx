@@ -53,6 +53,8 @@ export default function QuizPage({ subjectId }: QuizPageProps) {
         const token = await getToken();
         if (!token) {
           console.error("No auth token");
+          setLoading(false);
+          router.push("/login");
           return;
         }
 
