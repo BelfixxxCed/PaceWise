@@ -129,6 +129,20 @@ export async function GET(req: Request) {
   );
 }
 
+/**
+ * SM-2 Spaced Repetition Algorithm
+ *
+ * Correct answer:
+ *   - repetition++
+ *   - interval: 1d (rep=1) → 6d (rep=2) → interval*EF (rep>2)
+ *   - EF: +0.05 (max 3.0)
+ *
+ * Incorrect answer:
+ *   - repetition = 0 (reset)
+ *   - interval = 1d
+ *   - EF: -0.2 (min 1.3)
+ */
+
 export async function POST(req: Request) {
   const auth = await getUserId(req);
   if ("error" in auth) return auth.error;

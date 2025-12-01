@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/supabase/supabase_client";
 
@@ -29,16 +29,17 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function QuizPage({ subjectId }: QuizPageProps) {
+export default function QuizSection({ subjectId }: QuizPageProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [subject_name, setSubjectName] = useState("Practice Quiz");
+  const [subjectName, setSubjectName] = useState("Practice Quiz");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<string, string>
   >({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const getToken = useCallback(async () => {
     const {
@@ -141,7 +142,7 @@ export default function QuizPage({ subjectId }: QuizPageProps) {
   );
 
   const handleSubmitQuiz = useCallback(async () => {
-    setLoading(true);
+    setSubmitting(true);
 
     const submissions = questions.map((q) => {
       const userAnswer = selectedAnswers[q.question_id];
@@ -208,7 +209,9 @@ export default function QuizPage({ subjectId }: QuizPageProps) {
 
   if (loading) {
     return (
-      <div className="w-full absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">Loading...</div>
+      <div className="w-full absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">
+        Loading...
+      </div>
     );
   }
 
@@ -229,7 +232,7 @@ export default function QuizPage({ subjectId }: QuizPageProps) {
       <div className="flex-1 bg-white rounded-3xl border-2 border-green-200 p-10 shadow-sm">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-700 mb-1">
-            {subject_name}
+            {subjectName}
           </h1>
         </div>
 
@@ -353,14 +356,14 @@ export default function QuizPage({ subjectId }: QuizPageProps) {
         {!quizSubmitted ? (
           <button
             onClick={handleSubmitQuiz}
-            disabled={!allAnswered || loading}
+            disabled={!allAnswered || submitting}
             className={`w-full px-6 py-3 rounded-xl font-medium transition-colors ${
-              !allAnswered || loading
+              !allAnswered || submitting
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-green-400 hover:bg-green-500 text-white"
             }`}
           >
-            {loading ? "Submitting..." : "Submit Quiz"}
+            {submitting ? "Submitting..." : "Submit Quiz"}
           </button>
         ) : (
           <button
