@@ -185,7 +185,7 @@ export async function POST(req: Request) {
     if (repetition === 1) interval = 1;
     else if (repetition === 2) interval = 6;
     else interval = Math.max(1, Math.round(interval * EF));
-    EF = Math.min(EF + 0.05, 2.6);
+    EF = Math.min(EF + 0.05, 3.0);
   } else {
     repetition = 0;
     interval = 1;
