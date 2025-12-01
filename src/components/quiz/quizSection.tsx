@@ -11,7 +11,7 @@ interface Question {
   answer: string;
   options: string[];
   repetition: number;
-  ease_factor: string;
+  ease_factor: number;
   interval: number;
   next_appearance: string;
 }
