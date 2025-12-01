@@ -11,9 +11,7 @@ export default async function QuizPage({
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto flex gap-6">
-        <Suspense fallback={<QuizLoadingSkeleton />}>
-          <QuizSection subjectId={id} />
-        </Suspense>
+        <QuizSection subjectId={id} />
       </div>
     </div>
   );
