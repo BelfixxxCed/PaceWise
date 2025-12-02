@@ -148,14 +148,14 @@ export async function POST(req: Request) {
   if ("error" in auth) return auth.error;
   const { userId } = auth;
 
-  let body: { question_id?: string; isCorrect?: boolean };
+  let body: { question_id?: string; isCorrect?: boolean; quiz_id?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { question_id, isCorrect } = body;
+  const { question_id, isCorrect, quiz_id } = body;
   if (!question_id || typeof isCorrect !== "boolean") {
     return NextResponse.json(
       { error: "question_id and isCorrect are required" },
@@ -222,6 +222,22 @@ export async function POST(req: Request) {
 
   if (updateErr)
     return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+  if (quiz_id) {
+    const { error: quizUpdateErr } = await supabaseAdmin
+      .from("quizzes_question")
+      .insert([
+        {
+          quiz_id,
+          question_id,
+          iscorrect: isCorrect,
+        },
+      ]);
+
+    if (quizUpdateErr) {
+      console.error("Failed to record quiz question:", quizUpdateErr);
+    }
+  }
 
   return NextResponse.json(
     {
