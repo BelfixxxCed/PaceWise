@@ -1,6 +1,3 @@
-// Location: src/components/schedule/schedule_supabase_query.tsx
-// This file handles all Supabase queries for the schedule feature
-
 import supabase from "@/supabase/supabase_client";
 
 export interface DBSubject {
@@ -37,13 +34,6 @@ export interface NewSubjectInput {
   endPeriod: "AM" | "PM";
 }
 
-// ----------------------
-// Supabase Queries
-// ----------------------
-
-/**
- * Get all subjects for a specific user
- */
 export async function getAllSubjects(userId: string): Promise<DBSubject[]> {
   const { data, error } = await supabase
     .from("subjects")
@@ -55,9 +45,6 @@ export async function getAllSubjects(userId: string): Promise<DBSubject[]> {
   return data ?? [];
 }
 
-/**
- * Get a single subject by ID
- */
 export async function getSubjectById(subjectId: string): Promise<DBSubject> {
   const { data, error } = await supabase
     .from("subjects")
@@ -69,9 +56,6 @@ export async function getSubjectById(subjectId: string): Promise<DBSubject> {
   return data as DBSubject;
 }
 
-/**
- * Create a new subject
- */
 export async function createSubject(
   subject: Partial<DBSubject>
 ): Promise<DBSubject> {
@@ -82,12 +66,34 @@ export async function createSubject(
     .single();
 
   if (error) throw error;
-  return data as DBSubject;
+  const created = data as DBSubject;
+
+  const { data: existingNotes, error: existingNotesError } = await supabase
+    .from("notes_pages")
+    .select("notes_id")
+    .eq("subject_id", created.subject_id)
+    .limit(1);
+
+  if (existingNotesError) throw existingNotesError;
+
+  if (!existingNotes || existingNotes.length === 0) {
+    const { error: insertNoteError } = await supabase
+      .from("notes_pages")
+      .insert([
+        {
+          subject_id: created.subject_id,
+          user_id: created.user_id,
+          date_created: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+    if (insertNoteError) throw insertNoteError;
+  }
+
+  return created;
 }
 
-/**
- * Update an existing subject
- */
 export async function updateSubject(
   subjectId: string,
   updates: Partial<DBSubject>
@@ -103,9 +109,6 @@ export async function updateSubject(
   return data as DBSubject;
 }
 
-/**
- * Delete a subject
- */
 export async function deleteSubject(subjectId: string): Promise<boolean> {
   const { error } = await supabase
     .from("subjects")
@@ -116,9 +119,6 @@ export async function deleteSubject(subjectId: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Search subjects by name for a specific user
- */
 export async function searchSubjects(
   userId: string,
   searchTerm: string
@@ -134,13 +134,6 @@ export async function searchSubjects(
   return data ?? [];
 }
 
-// ----------------------
-// Transform Functions
-// ----------------------
-
-/**
- * Transform database subject to component format
- */
 export function transformSubjectFromDB(dbSubject: DBSubject): ComponentSubject {
   return {
     id: dbSubject.subject_id,
@@ -154,9 +147,6 @@ export function transformSubjectFromDB(dbSubject: DBSubject): ComponentSubject {
   };
 }
 
-/**
- * Transform component subject to database format
- */
 export function transformSubjectToDB(
   componentSubject: NewSubjectInput,
   userId: string
