@@ -88,8 +88,9 @@ function Page() {
 
               {/* Lower part of card */}
               <div>
-                <div className="mx-3 my-2">
-                  <div className="poppins-extrabold text-3xl text-[#3E6E48] flex">
+                <div className='mx-3 my-2 pl-6'>
+                  <div className='poppins-extrabold text-3xl text-[#3E6E48] flex'>
+                    <img height={25} width={25} src={`/reusable_ui_images/note_logo.svg`}  className='mr-3'/>
                     {subject.subject_name}
                   </div>
                   <div className="flex poppins-regular text-[#8E8B8B]">
