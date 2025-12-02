@@ -24,6 +24,7 @@ import {
 } from "@/lib/parseNotes";
 import { useEffect, useRef, useState, useCallback } from "react";
 import supabase from "@/supabase/supabase_client";
+import { useSaveLastEdit } from "./timer";
 
 const DEFAULT_VALUE: Value = [
   { children: [{ text: "Title" }], type: "h3" },
@@ -52,6 +53,7 @@ export default function MyEditorPage({ subjectId }: Props) {
   const [initialValue, setInitialValue] = useState<Value>(DEFAULT_VALUE);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
   const isInitializing = useRef(true);
+  const saveEditTime = useSaveLastEdit();
 
   const editor = usePlateEditor({
     plugins: [
@@ -168,8 +170,9 @@ export default function MyEditorPage({ subjectId }: Props) {
       if (isInitializing.current) return;
 
       scheduleSave(nodes);
+      saveEditTime(subjectId);
     },
-    [scheduleSave]
+    [scheduleSave, saveEditTime, subjectId]
   );
 
   // Cleanup on unmount
