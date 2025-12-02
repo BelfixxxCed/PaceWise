@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import supabase from "@/supabase/supabase_client";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
-import { ProgressOverview } from "@/components/dashboard/ProgressOverview";
+import { ProgressOverview, Course } from "@/components/dashboard/ProgressOverview";
 import { TimeStudiedCard } from "@/components/dashboard/TimeStudiedCard";
 import { PracticeQuizzesCard } from "@/components/dashboard/PracticeQuizzesCard";
 import { CourseCard } from "@/components/dashboard/CourseCard";
-import { useSubjectProgress } from "@/hooks/useSubjectProgress";
+import { getSubjectsProgress } from "@/lib/subjectsProgress";
+import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
+import { initTimeTracking, getCurrentTimeStudied } from "@/lib/timeTracker";
 
 const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("User");
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isProgressLoading, setIsProgressLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [availableQuizzes, setAvailableQuizzes] = useState<number>(0);
+  const [isQuizzesLoading, setIsQuizzesLoading] = useState(false);
+  const [timeStudied, setTimeStudied] = useState({ hours: 0, minutes: 0 });
 
   // Fetch user authentication and info
   useEffect(() => {
@@ -44,16 +52,74 @@ const Index = () => {
     getUser();
   }, []);
 
-  // Fetch subject progress using the custom hook
-  const { courses, isLoading: isProgressLoading, error } = useSubjectProgress(userId);
+  // Initialize time tracking
+  useEffect(() => {
+    // Initialize tracking and get cleanup function
+    const cleanup = initTimeTracking();
 
-  // TODO: Replace with actual backend data for time studied
-  const timeStudied = { hours: 1, minutes: 30 };
-  
-  // TODO: Replace with actual backend data for available quizzes
-  const availableQuizzes = 5;
-  
-  // TODO: Replace with actual backend data for last viewed course
+    // Update display every second for smooth counting
+    const displayInterval = setInterval(() => {
+      const { hours, minutes } = getCurrentTimeStudied();
+      setTimeStudied({ hours, minutes });
+    }, 1000);
+
+    // Cleanup on unmount
+    return () => {
+      cleanup();
+      clearInterval(displayInterval);
+    };
+  }, []);
+
+  // Fetch subject progress when userId is available
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!userId) return;
+
+      try {
+        setIsProgressLoading(true);
+        setError(null);
+        
+        const subjectsData = await getSubjectsProgress(userId);
+        
+        // Transform to Course interface
+        const transformedCourses: Course[] = subjectsData.map(subject => ({
+          id: subject.id,
+          name: subject.name,
+          progress: subject.progress
+        }));
+        
+        setCourses(transformedCourses);
+      } catch (err) {
+        console.error("Error fetching progress:", err);
+        setError(err instanceof Error ? err.message : "Failed to load courses");
+      } finally {
+        setIsProgressLoading(false);
+      }
+    };
+
+    fetchProgress();
+  }, [userId]);
+
+  // Fetch available quizzes count when userId is available
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      if (!userId) return;
+
+      try {
+        setIsQuizzesLoading(true);
+        const count = await getAvailableQuizzesCount(userId);
+        setAvailableQuizzes(count);
+      } catch (err) {
+        console.error("Error fetching available quizzes:", err);
+      } finally {
+        setIsQuizzesLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, [userId]);
+
+  // Last viewed course - use first course if available
   const lastViewedCourse = {
     code: courses.length > 0 ? courses[0].name : "No Courses",
     name: "Last Viewed Course",
@@ -91,8 +157,14 @@ const Index = () => {
             
             {/* Right column - Stats and cards */}
             <div className="space-y-6">
-              <TimeStudiedCard hours={timeStudied.hours} minutes={timeStudied.minutes} />
-              <PracticeQuizzesCard availableQuizzes={availableQuizzes} />
+              <TimeStudiedCard 
+                hours={timeStudied.hours} 
+                minutes={timeStudied.minutes}
+              />
+              <PracticeQuizzesCard 
+                availableQuizzes={availableQuizzes}
+                isLoading={isQuizzesLoading}
+              />
               <CourseCard 
                 courseCode={lastViewedCourse.code}
                 courseName={lastViewedCourse.name}

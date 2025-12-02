@@ -3,13 +3,13 @@ import Image from "next/image";
 interface TimeStudiedCardProps {
   hours: number;
   minutes: number;
+  isLoading?: boolean;
 }
 
-export const TimeStudiedCard = ({ hours, minutes }: TimeStudiedCardProps) => {
+export const TimeStudiedCard = ({ hours, minutes, isLoading = false }: TimeStudiedCardProps) => {
   return (
-  <div className="bg-white rounded-4xl p-6 border border-brand-green shadow-brand">
+    <div className="bg-white rounded-4xl p-6 border border-brand-green shadow-brand">
       <div className="flex items-center gap-4">
-        {/* removed background (bg-primary/10) and increased size */}
         <div className="w-14 h-14 flex items-center justify-center">
           <Image
             src="/reusable_ui_images/clock.svg"
@@ -21,9 +21,13 @@ export const TimeStudiedCard = ({ hours, minutes }: TimeStudiedCardProps) => {
         </div>
         <div>
           <p className="text-dashboard-body text-text-gray mb-1">Time studied</p>
-          <p className="text-dashboard-subtitle">
-            {hours}hr & {minutes} mins
-          </p>
+          {isLoading ? (
+            <p className="text-dashboard-subtitle text-text-gray">Loading...</p>
+          ) : (
+            <p className="text-dashboard-subtitle">
+              {hours}hr & {minutes} min{minutes !== 1 ? 's' : ''}
+            </p>
+          )}
         </div>
       </div>
     </div>
