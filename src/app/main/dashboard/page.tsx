@@ -6,12 +6,11 @@ import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 import { ProgressOverview, Course } from "@/components/dashboard/ProgressOverview";
 import { TimeStudiedCard } from "@/components/dashboard/TimeStudiedCard";
 import { PracticeQuizzesCard } from "@/components/dashboard/PracticeQuizzesCard";
-import { CourseCard } from "@/components/dashboard/CourseCard";
+import { LastViewedCourseCard } from "@/components/dashboard/LastViewedCourseCard";
 import { getSubjectsProgress } from "@/lib/subjectsProgress";
 import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
 import { initTimeTracking, getCurrentTimeStudied } from "@/lib/timeTracker";
-
-//tangina mo 
+import { getLastViewedNote } from "@/lib/getLastViewedNote";
 
 const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -23,6 +22,9 @@ const Index = () => {
   const [availableQuizzes, setAvailableQuizzes] = useState<number>(0);
   const [isQuizzesLoading, setIsQuizzesLoading] = useState(false);
   const [timeStudied, setTimeStudied] = useState({ hours: 0, minutes: 0 });
+  const [lastViewedSubject, setLastViewedSubject] = useState<string>("Last Viewed Course");
+  const [lastViewedSubjectId, setLastViewedSubjectId] = useState<string | null>(null);
+  const [isLastViewedLoading, setIsLastViewedLoading] = useState(true);
 
   // Fetch user authentication and info
   useEffect(() => {
@@ -121,6 +123,34 @@ const Index = () => {
     fetchQuizzes();
   }, [userId]);
 
+  // Fetch last viewed note when userId is available
+  useEffect(() => {
+    const fetchLastViewed = async () => {
+      if (!userId) return;
+
+      try {
+        setIsLastViewedLoading(true);
+        const lastNote = await getLastViewedNote(userId);
+        
+        if (lastNote) {
+          setLastViewedSubject(lastNote.subject_name);
+          setLastViewedSubjectId(lastNote.subject_id);
+        } else {
+          setLastViewedSubject("Last Viewed Course");
+          setLastViewedSubjectId(null);
+        }
+      } catch (err) {
+        console.error("Error fetching last viewed note:", err);
+        setLastViewedSubject("Last Viewed Course");
+        setLastViewedSubjectId(null);
+      } finally {
+        setIsLastViewedLoading(false);
+      }
+    };
+
+    fetchLastViewed();
+  }, [userId]);
+
   // Last viewed course - use first course if available
   const lastViewedCourse = {
     code: courses.length > 0 ? courses[0].name : "No Courses",
@@ -167,10 +197,10 @@ const Index = () => {
                 availableQuizzes={availableQuizzes}
                 isLoading={isQuizzesLoading}
               />
-              <CourseCard 
-                courseCode={lastViewedCourse.code}
-                courseName={lastViewedCourse.name}
-                subtitle={lastViewedCourse.lastNote}
+              <LastViewedCourseCard 
+                subjectName={lastViewedSubject}
+                subjectId={lastViewedSubjectId}
+                isLoading={isLastViewedLoading}
               />
             </div>
           </div>
