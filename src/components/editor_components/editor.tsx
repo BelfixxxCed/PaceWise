@@ -189,7 +189,7 @@ export default function MyEditorPage({ subjectId }: Props) {
       editor={editor}
       onChange={(x_val) => handleEditorChange(x_val.value)}
     >
-      <FixedToolbar className="justify-start rounded-t-lg">
+      <FixedToolbar className="justify-start rounded-t-lg z-10">
         <ToolbarButton onClick={() => editor.tf.h1.toggle()}>H1</ToolbarButton>
         <ToolbarButton onClick={() => editor.tf.h2.toggle()}>H2</ToolbarButton>
         <ToolbarButton onClick={() => editor.tf.h3.toggle()}>H3</ToolbarButton>
