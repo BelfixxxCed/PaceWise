@@ -1,5 +1,5 @@
 
-export const SendText = async (payload : string) : Promise<String> => {
+export const SendText = async (payload : string) : Promise<string> => {
 
 
     const dev_prompt = `
