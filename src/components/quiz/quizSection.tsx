@@ -40,6 +40,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [quizId, setQuizId] = useState<string | null>(null);
 
   const getToken = useCallback(async () => {
     const {
@@ -49,13 +50,31 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
   }, []);
 
   useEffect(() => {
-    const loadQuestions = async () => {
+    const startQuiz = async () => {
       try {
         const token = await getToken();
         if (!token) {
           console.error("No auth token");
           setLoading(false);
           router.push("/login");
+          return;
+        }
+
+        const startRes = await fetch("/api/quiz/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ subject_id: subjectId }),
+        });
+
+        const startJson = await startRes.json();
+        if (startRes.ok && startJson.quiz_id) {
+          setQuizId(startJson.quiz_id);
+        } else {
+          console.error("Failed to start quiz:", startJson.error);
+          setLoading(false);
           return;
         }
 
@@ -85,7 +104,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
       }
     };
 
-    loadQuestions();
+    startQuiz();
   }, [subjectId, getToken]);
 
   const handleAnswerSelect = useCallback(
@@ -124,6 +143,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
           body: JSON.stringify({
             question_id: question.question_id,
             isCorrect,
+            quiz_id: quizId,
           }),
         });
 
@@ -138,7 +158,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
         return false;
       }
     },
-    [getToken]
+    [getToken, quizId]
   );
 
   const handleSubmitQuiz = useCallback(async () => {
@@ -152,9 +172,33 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
 
     await Promise.all(submissions);
 
+    if (quizId) {
+      try {
+        const token = await getToken();
+        if (token) {
+          const completeRes = await fetch("/api/quiz/complete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ quiz_id: quizId }),
+          });
+
+          if (!completeRes.ok) {
+            const json = await completeRes.json();
+            console.error("Quiz completion failed:", json.error);
+          }
+        }
+      } catch (error) {
+        console.error("Error completing quiz:", error);
+      }
+    }
+
     setQuizSubmitted(true);
     setLoading(false);
-  }, [questions, selectedAnswers, submitSingleAnswer]);
+    setSubmitting(false);
+  }, [questions, selectedAnswers, submitSingleAnswer, quizId, getToken]);
 
   const calculateScore = useCallback(() => {
     return questions.reduce((score, q) => {

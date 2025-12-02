@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getUserId } from "@/lib/auth";
+import { supabaseAdmin } from "@/supabase/supabase_admin";
 
 type QuestionRow = {
   question_id: string;
@@ -23,23 +19,6 @@ type NormalizedQuestion = Omit<QuestionRow, "options" | "ease_factor"> & {
   ease_factor: number;
   subject_name?: string;
 };
-
-async function getUserId(req: Request) {
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-  if (!token)
-    return {
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-    };
-
-  const { data, error } = await supabaseAdmin.auth.getUser(token);
-  if (error || !data?.user) {
-    return {
-      error: NextResponse.json({ error: "Invalid token" }, { status: 401 }),
-    };
-  }
-  return { userId: data.user.id };
-}
 
 function normalizeQuestion(row: any): NormalizedQuestion {
   const opts = Array.isArray(row.options)
@@ -148,14 +127,14 @@ export async function POST(req: Request) {
   if ("error" in auth) return auth.error;
   const { userId } = auth;
 
-  let body: { question_id?: string; isCorrect?: boolean };
+  let body: { question_id?: string; isCorrect?: boolean; quiz_id?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { question_id, isCorrect } = body;
+  const { question_id, isCorrect, quiz_id } = body;
   if (!question_id || typeof isCorrect !== "boolean") {
     return NextResponse.json(
       { error: "question_id and isCorrect are required" },
@@ -222,6 +201,22 @@ export async function POST(req: Request) {
 
   if (updateErr)
     return NextResponse.json({ error: updateErr.message }, { status: 500 });
+
+  if (quiz_id) {
+    const { error: quizUpdateErr } = await supabaseAdmin
+      .from("quizzes_question")
+      .insert([
+        {
+          quiz_id,
+          question_id,
+          iscorrect: isCorrect,
+        },
+      ]);
+
+    if (quizUpdateErr) {
+      console.error("Failed to record quiz question:", quizUpdateErr);
+    }
+  }
 
   return NextResponse.json(
     {
