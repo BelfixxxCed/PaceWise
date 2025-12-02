@@ -1,70 +1,75 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
+import { useState } from "react";
 
 interface AddSubjectFormProps {
   onAddSubject: (subject: {
-    title: string
-    startTime: string
-    startMinutes: string
-    startPeriod: "AM" | "PM"
-    endTime: string
-    endMinutes: string
-    endPeriod: "AM" | "PM"
-  }) => void
+    title: string;
+    startTime: string;
+    startMinutes: string;
+    startPeriod: "AM" | "PM";
+    endTime: string;
+    endMinutes: string;
+    endPeriod: "AM" | "PM";
+  }) => void;
 }
 
 export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
-  const [title, setTitle] = useState("")
-  const [startTime, setStartTime] = useState("")
-  const [startMinutes, setStartMinutes] = useState("")
-  const [startPeriod, setStartPeriod] = useState<"AM" | "PM">("AM")
-  const [endTime, setEndTime] = useState("")
-  const [endMinutes, setEndMinutes] = useState("")
-  const [endPeriod, setEndPeriod] = useState<"AM" | "PM">("AM")
-  const [errors, setErrors] = useState<string[]>([])
+  const [title, setTitle] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [startMinutes, setStartMinutes] = useState("00");
+  const [startPeriod, setStartPeriod] = useState<"AM" | "PM">("AM");
+  const [endTime, setEndTime] = useState("");
+  const [endMinutes, setEndMinutes] = useState("00");
+  const [endPeriod, setEndPeriod] = useState<"AM" | "PM">("AM");
+  const [errors, setErrors] = useState<string[]>([]);
 
   const validateHours = (value: string) => {
-    if (!value) return true
-    const num = Number.parseInt(value, 10)
-    return num >= 1 && num <= 12
-  }
+    if (!value) return true;
+    const num = Number.parseInt(value, 10);
+    return num >= 1 && num <= 12;
+  };
 
   const validateMinutes = (value: string) => {
-    if (!value) return true
-    const num = Number.parseInt(value, 10)
-    return num >= 0 && num <= 60
-  }
+    if (!value) return true;
+    const num = Number.parseInt(value, 10);
+    return num >= 0 && num <= 59;
+  };
 
   const handleHourChange = (value: string, setter: (val: string) => void) => {
-    const numValue = value.replace(/\D/g, "").slice(0, 2)
+    const numValue = value.replace(/\D/g, "").slice(0, 2);
     if (numValue === "" || validateHours(numValue)) {
-      setter(numValue)
+      setter(numValue);
+      setErrors([]);
     }
-  }
+  };
 
-  const handleMinutesChange = (value: string, setter: (val: string) => void) => {
-    const numValue = value.replace(/\D/g, "").slice(0, 2)
+  const handleMinutesChange = (
+    value: string,
+    setter: (val: string) => void
+  ) => {
+    const numValue = value.replace(/\D/g, "").slice(0, 2);
     if (numValue === "" || validateMinutes(numValue)) {
-      setter(numValue)
+      setter(numValue);
+      setErrors([]);
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: string[] = []
-    if (!title.trim()) newErrors.push("Title is required")
-    if (!startTime) newErrors.push("Start hour is required")
-    if (!startMinutes) newErrors.push("Start minutes are required")
-    if (!endTime) newErrors.push("End hour is required")
-    if (!endMinutes) newErrors.push("End minutes are required")
-    setErrors(newErrors)
-    return newErrors.length === 0
-  }
+    const newErrors: string[] = [];
+    if (!title.trim()) newErrors.push("Title is required");
+    if (!startTime) newErrors.push("Start hour is required");
+    if (!startMinutes) newErrors.push("Start minutes are required");
+    if (!endTime) newErrors.push("End hour is required");
+    if (!endMinutes) newErrors.push("End minutes are required");
+    setErrors(newErrors);
+    return newErrors.length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (validateForm()) {
       onAddSubject({
         title,
@@ -74,21 +79,24 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
         endTime: endTime.padStart(2, "0"),
         endMinutes: endMinutes.padStart(2, "0"),
         endPeriod,
-      })
-      // Reset form
-      setTitle("")
-      setStartTime("")
-      setStartMinutes("")
-      setStartPeriod("AM")
-      setEndTime("")
-      setEndMinutes("")
-      setEndPeriod("AM")
-      setErrors([])
+      });
+
+      setTitle("");
+      setStartTime("");
+      setStartMinutes("00");
+      setStartPeriod("AM");
+      setEndTime("");
+      setEndMinutes("00");
+      setEndPeriod("AM");
+      setErrors([]);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border-2 border-[#71D285] rounded-3xl p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white border-2 border-[#71D285] rounded-3xl p-6"
+    >
       <div className="bg-[#71D285] -mx-6 -mt-6 px-6 py-4 rounded-t-2xl mb-6 text-center">
         <h2 className="text-xl font-bold text-white">Add Subject</h2>
       </div>
@@ -120,7 +128,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               type="text"
               placeholder="00"
               value={startMinutes}
-              onChange={(e) => handleMinutesChange(e.target.value, setStartMinutes)}
+              onChange={(e) =>
+                handleMinutesChange(e.target.value, setStartMinutes)
+              }
               maxLength={2}
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
@@ -129,7 +139,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
                 type="button"
                 onClick={() => setStartPeriod("AM")}
                 className={`px-3 py-2 rounded font-medium transition ${
-                  startPeriod === "AM" ? "bg-[#71D285] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  startPeriod === "AM"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
               >
                 AM
@@ -138,7 +150,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
                 type="button"
                 onClick={() => setStartPeriod("PM")}
                 className={`px-3 py-2 rounded font-medium transition ${
-                  startPeriod === "PM" ? "bg-[#71D285] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  startPeriod === "PM"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
               >
                 PM
@@ -163,7 +177,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               type="text"
               placeholder="00"
               value={endMinutes}
-              onChange={(e) => handleMinutesChange(e.target.value, setEndMinutes)}
+              onChange={(e) =>
+                handleMinutesChange(e.target.value, setEndMinutes)
+              }
               maxLength={2}
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
@@ -172,7 +188,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
                 type="button"
                 onClick={() => setEndPeriod("AM")}
                 className={`px-3 py-2 rounded font-medium transition ${
-                  endPeriod === "AM" ? "bg-[#71D285] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  endPeriod === "AM"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
               >
                 AM
@@ -181,7 +199,9 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
                 type="button"
                 onClick={() => setEndPeriod("PM")}
                 className={`px-3 py-2 rounded font-medium transition ${
-                  endPeriod === "PM" ? "bg-[#71D285] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  endPeriod === "PM"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
               >
                 PM
@@ -208,5 +228,5 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
         </button>
       </div>
     </form>
-  )
+  );
 }
