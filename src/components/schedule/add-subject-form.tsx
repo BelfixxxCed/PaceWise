@@ -45,12 +45,17 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
       setErrors((prev) => {
         const remove =
           setter === setStartTime
-        ? "Start hour is required"
-        : setter === setEndTime
-        ? "End hour is required"
-        : null;
+            ? "Start hour is required"
+            : setter === setEndTime
+            ? "End hour is required"
+            : null;
         if (!remove) return prev;
-        return prev.filter((e) => e !== remove);
+
+        if (numValue === "") {
+          return prev.filter((e) => e !== remove);
+        }
+
+        return prev;
       });
     }
   };
@@ -65,12 +70,17 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
       setErrors((prev) => {
         const remove =
           setter === setStartMinutes
-        ? "Start minutes are required"
-        : setter === setEndMinutes
-        ? "End minutes are required"
-        : null;
+            ? "Start minutes are required"
+            : setter === setEndMinutes
+            ? "End minutes are required"
+            : null;
         if (!remove) return prev;
-        return prev.filter((e) => e !== remove);
+
+        if (numValue === "") {
+          return prev.filter((e) => e !== remove);
+        }
+
+        return prev;
       });
     }
   };
@@ -79,9 +89,11 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
     const newErrors: string[] = [];
     if (!title.trim()) newErrors.push("Title is required");
     if (!startTime) newErrors.push("Start hour is required");
-    if (!startMinutes) newErrors.push("Start minutes are required");
+    if (!startMinutes || !validateMinutes(startMinutes))
+      newErrors.push("Start minutes must be between 00 and 59");
     if (!endTime) newErrors.push("End hour is required");
-    if (!endMinutes) newErrors.push("End minutes are required");
+    if (!endMinutes || !validateMinutes(endMinutes))
+      newErrors.push("End minutes must be between 00 and 59");
     setErrors(newErrors);
     return newErrors.length === 0;
   };
@@ -153,21 +165,22 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
             <div className="flex gap-1 ml-2">
-                <button
+              <button
                 type="button"
                 onClick={() => setStartPeriod("AM")}
                 aria-pressed={startPeriod === "AM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   startPeriod === "AM"
-                  ? "bg-[#71D285] text-white"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
-                >
+              >
                 AM
-                </button>
+              </button>
               <button
                 type="button"
                 onClick={() => setStartPeriod("PM")}
+                aria-pressed={startPeriod === "PM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   startPeriod === "PM"
                     ? "bg-[#71D285] text-white"
@@ -203,21 +216,22 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
             <div className="flex gap-1 ml-2">
-                <button
+              <button
                 type="button"
                 onClick={() => setEndPeriod("AM")}
                 aria-pressed={endPeriod === "AM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   endPeriod === "AM"
-                  ? "bg-[#71D285] text-white"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                    ? "bg-[#71D285] text-white"
+                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
-                >
+              >
                 AM
-                </button>
+              </button>
               <button
                 type="button"
                 onClick={() => setEndPeriod("PM")}
+                aria-pressed={endPeriod === "PM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   endPeriod === "PM"
                     ? "bg-[#71D285] text-white"
