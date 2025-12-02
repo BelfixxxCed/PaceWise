@@ -11,6 +11,8 @@ import { getSubjectsProgress } from "@/lib/subjectsProgress";
 import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
 import { initTimeTracking, getCurrentTimeStudied } from "@/lib/timeTracker";
 
+//tangina mo 
+
 const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("User");
