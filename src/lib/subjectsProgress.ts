@@ -4,8 +4,8 @@ interface SubjectRow {
   id: number;
   name: string;
   progress: number;  // 0–100
-  score: number;     // correct
-  maxScore: number;  // correct + wrong
+  score: number;     // questions due in future
+  maxScore: number;  // total questions
   completed: boolean;
 }
 
@@ -15,14 +15,9 @@ export const getSubjectsProgress = async (userId: string): Promise<SubjectRow[]>
     .select(`
       subject_id,
       subject_name,
-      quizzes (
-        quiz_id,
-        date,
-        quiz_results (
-          correct_items,
-          wrong_items,
-          date_of_completion
-        )
+      questions (
+        question_id,
+        next_appearance
       )
     `)
     .eq("user_id", userId);
@@ -34,32 +29,20 @@ export const getSubjectsProgress = async (userId: string): Promise<SubjectRow[]>
 
   if (!data) return [];
 
+  const now = new Date();
+
   return data.map((subject: any) => {
-    // Get latest quiz
-    let latestCorrect = 0;
-    let latestWrong = 0;
+    const totalQuestions = subject.questions?.length || 0;
+    
+    // Count questions that are due in the future (i.e., "done" for now)
+    const questionsDueInFuture = subject.questions?.filter((q: any) => {
+      if (!q.next_appearance) return false;
+      const nextAppearance = new Date(q.next_appearance);
+      return nextAppearance > now;
+    }).length || 0;
 
-    if (subject.quizzes && subject.quizzes.length > 0) {
-      const latestQuiz = subject.quizzes.reduce((prev: any, curr: any) => {
-        const prevDate = prev.date ? new Date(prev.date) : new Date(0);
-        const currDate = curr.date ? new Date(curr.date) : new Date(0);
-        return currDate > prevDate ? curr : prev;
-      });
-
-      if (latestQuiz && latestQuiz.quiz_results && latestQuiz.quiz_results.length > 0) {
-        latestCorrect = latestQuiz.quiz_results.reduce(
-          (sum: number, r: any) => sum + (r.correct_items || 0),
-          0
-        );
-        latestWrong = latestQuiz.quiz_results.reduce(
-          (sum: number, r: any) => sum + (r.wrong_items || 0),
-          0
-        );
-      }
-    }
-
-    const score = latestCorrect;
-    const maxScore = latestCorrect + latestWrong;
+    const score = questionsDueInFuture;
+    const maxScore = totalQuestions;
     const progress = maxScore ? (score / maxScore) * 100 : 0;
     const completed = maxScore > 0 && score === maxScore;
 
