@@ -170,9 +170,9 @@ export default function MyEditorPage({ subjectId }: Props) {
       if (isInitializing.current) return;
 
       scheduleSave(nodes);
-      saveEditTime(subjectId)
+      saveEditTime(subjectId);
     },
-    [scheduleSave]
+    [scheduleSave, saveEditTime, subjectId]
   );
 
   // Cleanup on unmount
