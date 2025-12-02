@@ -105,7 +105,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
     };
 
     startQuiz();
-  }, [subjectId, getToken, router]);
+  }, [subjectId, getToken]);
 
   const handleAnswerSelect = useCallback(
     (questionId: string, answer: string) => {
@@ -197,6 +197,7 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
 
     setQuizSubmitted(true);
     setLoading(false);
+    setSubmitting(false);
   }, [questions, selectedAnswers, submitSingleAnswer, quizId, getToken]);
 
   const calculateScore = useCallback(() => {
