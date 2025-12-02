@@ -42,7 +42,16 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
     const numValue = value.replace(/\D/g, "").slice(0, 2);
     if (numValue === "" || validateHours(numValue)) {
       setter(numValue);
-      setErrors([]);
+      setErrors((prev) => {
+        const remove =
+          setter === setStartTime
+        ? "Start hour is required"
+        : setter === setEndTime
+        ? "End hour is required"
+        : null;
+        if (!remove) return prev;
+        return prev.filter((e) => e !== remove);
+      });
     }
   };
 
@@ -53,7 +62,16 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
     const numValue = value.replace(/\D/g, "").slice(0, 2);
     if (numValue === "" || validateMinutes(numValue)) {
       setter(numValue);
-      setErrors([]);
+      setErrors((prev) => {
+        const remove =
+          setter === setStartMinutes
+        ? "Start minutes are required"
+        : setter === setEndMinutes
+        ? "End minutes are required"
+        : null;
+        if (!remove) return prev;
+        return prev.filter((e) => e !== remove);
+      });
     }
   };
 
@@ -135,17 +153,18 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
             <div className="flex gap-1 ml-2">
-              <button
+                <button
                 type="button"
                 onClick={() => setStartPeriod("AM")}
+                aria-pressed={startPeriod === "AM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   startPeriod === "AM"
-                    ? "bg-[#71D285] text-white"
-                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-[#71D285] text-white"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
-              >
+                >
                 AM
-              </button>
+                </button>
               <button
                 type="button"
                 onClick={() => setStartPeriod("PM")}
@@ -184,17 +203,18 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
               className="w-12 px-2 py-2 border-2 border-[#71D285] rounded text-center focus:outline-none focus:ring-2 focus:ring-[#71D285]"
             />
             <div className="flex gap-1 ml-2">
-              <button
+                <button
                 type="button"
                 onClick={() => setEndPeriod("AM")}
+                aria-pressed={endPeriod === "AM"}
                 className={`px-3 py-2 rounded font-medium transition ${
                   endPeriod === "AM"
-                    ? "bg-[#71D285] text-white"
-                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-[#71D285] text-white"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                 }`}
-              >
+                >
                 AM
-              </button>
+                </button>
               <button
                 type="button"
                 onClick={() => setEndPeriod("PM")}
