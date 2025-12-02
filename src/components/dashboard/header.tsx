@@ -12,6 +12,7 @@ function header() {
     const path = usePathname();
     const router = useRouter();
     const [name, setName] = useState("Loading...")
+    const [pfp, set_pfp] = useState("/blank-user-svgrepo-com.svg")
 
     const title_decide = () => {
         if (path == '/main/notes'){
@@ -25,29 +26,30 @@ function header() {
     }
 
     const verifyUser = async () => {
-    const { data, error } = await supabase.auth.getUser(); //This needs to be changed into getSession but in a way that it is not disruptive
+        const { data, error } = await supabase.auth.getUser(); //This needs to be changed into getSession but in a way that it is not disruptive
 
-    if (error) {
-        console.log("There was an error checking your authorization:", error.message);
-        alert("There was an error checking your authorization.");
-        router.push("/");
-        return;
-    }
+        if (error) {
+            console.log("There was an error checking your authorization:", error.message);
+            alert("There was an error checking your authorization.");
+            router.push("/");
+            return;
+        }
 
-    if (!data.user || data.user.aud !== "authenticated") {
-        router.push("/");
-        return;
-    }
+        if (!data.user || data.user.aud !== "authenticated") {
+            router.push("/");
+            return;
+        }
 
-    const fullName =
-        data.user.user_metadata?.full_name ||
-        data.user.identities?.[0]?.identity_data?.full_name ||
-        data.user.identities?.[0]?.identity_data?.name ||
-        "";
-    setName(fullName)
+        const pfp_link = data.user.identities?.[0]?.identity_data?.avatar_url;
+        set_pfp(pfp_link);
+
+        const fullName =
+            data.user.user_metadata?.full_name ||
+            data.user.identities?.[0]?.identity_data?.full_name ||
+            data.user.identities?.[0]?.identity_data?.name ||
+            "";
+        setName(fullName)
     };
-
-
 
     useEffect(() => {
         title_decide();
@@ -66,7 +68,8 @@ function header() {
                 </li>
                 <li>
                     {/* Insert profile pic here */}
-                    <div className='h-10 w-10 bg-[#71D285] rounded-full'>
+                    <div className='h-10 w-10'>
+                        <img src={pfp} className='rounded-full' />
                     </div>
                 </li>
             </ul>
