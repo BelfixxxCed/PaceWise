@@ -3,15 +3,10 @@
 import React, { useState } from "react"
 import { Zap } from "lucide-react"
 import { Create_Questions } from "@/cards_algorithm/first_instance/create_questions"
+// supabase not needed here; QuizSection will start the quiz server-side
 import { useRouter } from "next/navigation"
 
-export default function GenerateTestButton({
-  subjectId,
-  subjectTitle,
-}: {
-  subjectId: string
-  subjectTitle?: string
-}) {
+export default function GenerateTestButton({ subjectId }: { subjectId: string }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -19,15 +14,23 @@ export default function GenerateTestButton({
     try {
       setLoading(true)
       console.log("Calling Create_Questions for subject:", subjectId)
-      await Create_Questions(subjectId)
-      const itemsJson = sessionStorage.getItem("new_generate_quiz_items")
-      const items = itemsJson ? JSON.parse(itemsJson) : null
-      console.log("Generated quiz items (sessionStorage):", items)
+      // Try to get generated items directly from Create_Questions return value (fallback to sessionStorage)
+      const generated = await Create_Questions(subjectId)
+      let items = generated ?? null
+      if (!items) {
+        const itemsJson = typeof window !== "undefined" ? sessionStorage.getItem("new_generate_quiz_items") : null
+        items = itemsJson ? JSON.parse(itemsJson) : null
+      }
+      console.log("Generated quiz items:", items)
 
-      // Decide route id: prefer human-readable subjectTitle (e.g. "cmsc 128"), fall back to subjectId
-      const routeId = subjectTitle && subjectTitle.length > 0 ? subjectTitle : subjectId
-      // Navigate to the quiz page for this subject
-      router.push(`/main/practice_test/quiz/${encodeURIComponent(routeId)}`)
+      if (!items || (Array.isArray(items) && (items as unknown[]).length === 0)) {
+        console.error("No quiz items to save")
+        return
+      }
+
+      // Navigate to the quiz page for this subject — the page will call the
+      // start API and create the quiz server-side (avoids duplicate quiz rows).
+      router.push(`/main/practice_test/quiz/${encodeURIComponent(subjectId)}`)
     } catch (err) {
       console.error("Failed to generate test:", err)
     } finally {
@@ -38,7 +41,11 @@ export default function GenerateTestButton({
   return (
     <button
       onClick={handleGenerate}
-      className="flex bg-[#71D285] gap-2 px-4 py-2 rounded-full text-white font-medium hover:bg-[#5eae6e] transition-colors items-center"
+      className={`flex gap-2 px-4 py-2 rounded-full text-white font-medium transition-colors items-center ${
+        loading
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-[#71D285] hover:bg-[#5eae6e]"
+      }`}
       disabled={loading}
     >
       <Zap size={18} />
