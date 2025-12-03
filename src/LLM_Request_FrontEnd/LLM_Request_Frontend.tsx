@@ -1,7 +1,4 @@
-
-export const SendText = async (payload : string) : Promise<String> => {
-
-
+export const SendText = async (payload: string): Promise<any[]> => {
     const dev_prompt = `
     You are a teacher creating quiz questions based on user input.
     ONLY output JSON. DO NOT include any text, headings, or explanations.
@@ -32,16 +29,41 @@ export const SendText = async (payload : string) : Promise<String> => {
     Now generate quiz questions for the following user input as strictly JSON only:
     `;
 
-    const response = await fetch(
-        "/api/llm_questionnaire_request_api_call", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                prompt : `${dev_prompt}\nUser: ${payload}`
-            })
-        }
-    );
+    const response = await fetch("/api/llm_questionnaire_request_api_call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            prompt: `${dev_prompt}\nUser: ${payload}`
+        })
+    });
 
     const data = await response.json();
-    return data.output;
+    
+    
+    // Parse the LLM response string into an array
+    try {
+        // Remove markdown code blocks if present
+        let cleanOutput = data.output;
+        
+        // Remove ```json and ``` if the LLM wrapped the response
+        if (typeof cleanOutput === 'string') {
+            cleanOutput = cleanOutput.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        }
+        
+        
+        const parsedOutput = JSON.parse(cleanOutput);
+        
+        
+        // Ensure it's an array
+        if (!Array.isArray(parsedOutput)) {
+            console.error("LLM response is not an array:", parsedOutput);
+            return [];
+        }
+        
+        return parsedOutput;
+    } catch (error) {
+        console.error("Failed to parse LLM output:", error);
+        console.error("Raw output was:", data.output);
+        return []; // Return empty array on parse failure
+    }
 }
