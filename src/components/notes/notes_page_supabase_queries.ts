@@ -1,41 +1,47 @@
-import supabase from "@/supabase/supabase_client"
-
-
+import supabase from "@/supabase/supabase_client";
 
 export const GET_subjects = async () => {
-    const {data, error} = await supabase
-        .from("subjects")
-        .select("subject_id, subject_name, date_created");
+  const { data, error } = await supabase
+    .from("subjects")
+    .select("subject_id, subject_name, date_created, notes_pages (updated_at)");
 
-    if(error){
-        console.log("Error in getting subjects: ", error.message);
-        return;
-    }
+  if (error) {
+    console.log("Error in getting subjects: ", error.message);
+    return;
+  }
 
-    const fixed_datetime = data.map(each => {
-        return {
-            ...each,
-            date_created_difference : timeAgo(each.date_created),
-            date_created : formatDate(each.date_created)
-        }
-    })
+  const fixed_datetime = data.map((each) => {
+    const latestUpdatedAt =
+      Array.isArray(each.notes_pages) && each.notes_pages.length > 0
+        ? each.notes_pages
+            .map((np) => new Date(np.updated_at).getTime())
+            .sort((a, b) => b - a)[0]
+        : undefined;
 
-    return fixed_datetime
-}
+    const updatedAtDate = latestUpdatedAt
+      ? new Date(latestUpdatedAt)
+      : each.date_created;
+    return {
+      ...each,
+      date_updated_difference: timeAgo(updatedAtDate),
+      date_created: formatDate(each.date_created),
+    };
+  });
 
+  return fixed_datetime;
+};
 
 const timeAgo = (timestamp: string | Date): string => {
-  const now = new Date().getTime(); // convert to milliseconds
-  const past = new Date(timestamp).getTime(); // convert to milliseconds
+  const now = new Date().getTime();
+  const past = new Date(timestamp).getTime();
 
-  // Difference in seconds
   const diff = Math.floor((now - past) / 1000);
 
   const minute = 60;
   const hour = 60 * minute;
   const day = 24 * hour;
-  const month = 30 * day;  // approximation
-  const year = 365 * day;  // approximation
+  const month = 30 * day;
+  const year = 365 * day;
 
   if (diff < minute) {
     return "Just now";
@@ -69,9 +75,9 @@ const formatDate = (timestamp: string | Date): string => {
   const date = new Date(timestamp);
 
   return date.toLocaleDateString("en-US", {
-    weekday: "short",   // "Fri"
-    year: "numeric",    // "2025"
-    month: "short",     // "Oct"
-    day: "numeric"      // "11"
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 };
