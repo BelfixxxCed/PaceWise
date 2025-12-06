@@ -4,16 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSubjectsProgress } from '@/lib/subjectsProgress';
 import supabase from '@/supabase/supabase_client';
+import LoadingModal from '@/components/loading_modal';
 
 export default function PracticeTestPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState([
-    { id: 1, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
-    { id: 2, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
-    { id: 3, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
-    { id: 4, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
-    { id: 5, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
-    { id: 6, name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
+    { id: "1", name: 'Amat 132', progress: 0, score: 0, maxScore: 10, completed: false },
   ]);
 
   const get_subject_data = async () => {
@@ -22,9 +19,11 @@ export default function PracticeTestPage() {
       console.log("There was an error in getting user: ", error_user.message);
       return;
     }
-    const data = await getSubjectsProgress(data_user.user.id);
+    const data = await getSubjectsProgress();
     setSubjects(data);
+    setLoading(false);
   }
+
 
   useEffect(() => {
     // Check localStorage for completed quizzes
@@ -47,11 +46,16 @@ export default function PracticeTestPage() {
     get_subject_data()
   }, []);
 
-  const handleTakeQuiz = (id: number) => {
+  
+  if(loading){
+    return <LoadingModal message='Loading your progress...'/>
+  }
+
+  const handleTakeQuiz = (id: string) => {
     router.push(`/main/practice_test/quiz/${id}`);
   };
 
-  const handleViewSummary = (id: number) => {
+  const handleViewSummary = (id: string) => {
     router.push(`/main/practice_test/summary/${id}`);
   };
 
@@ -74,7 +78,7 @@ export default function PracticeTestPage() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-4 px-4 text-gray-500 font-medium">Course Name</th>
                   <th className="text-left py-4 px-4 text-gray-500 font-medium">Progress</th>
-                  <th className="text-left py-4 px-4 text-gray-500 font-medium">Score</th>
+                  <th className="text-left py-4 px-4 text-gray-500 font-medium">Previous Score</th>
                   <th className="text-left py-4 px-4 text-gray-500 font-medium">Action</th>
                 </tr>
               </thead>

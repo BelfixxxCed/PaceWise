@@ -1,4 +1,5 @@
 import supabase from "@/supabase/supabase_client";
+import { error } from "console";
 
 interface SubjectRow {
   id: string;
@@ -9,100 +10,76 @@ interface SubjectRow {
   completed: boolean;
 }
 
-export const getSubjectsProgress = async (userId: string): Promise<SubjectRow[]> => {
-  const { data, error } = await supabase
-    .from("subjects")
-    .select(`
-      subject_id,
-      subject_name,
-      quizzes (
-        quiz_id,
-        date,
-        quiz_results (
-          correct_items,
-          wrong_items,
-          date_of_completion
-        )
-      )
-    `)
-    .eq("user_id", userId);
+export const getSubjectsProgress = async (): Promise<SubjectRow[]> => {
+    // Let's get all of the subjects first:
+    const {data : subject_list , error : subject_error} = await supabase
+      .from("subjects")
+      .select(`subject_id, subject_name`);
+    
+    if(subject_error){
+      console.log("There was an error with the query of subjects: ", subject_error.message);
+      return [];
+    }
 
-  if (error) {
-    console.error("Error fetching subjects: ", error.message);
-    return [];
-  }
+    // NOW we find the progress...
 
-  if (!data) return [];
+const subjects_array : SubjectRow[] = (await Promise.all(
+    subject_list.map(async (each): Promise<SubjectRow | null> => {
 
-  const now = new Date();
+    const {count : total_question_count, error : total_question_error} = await supabase.from("questions").select("*", {count:"exact", head:true}).eq("subject_id", each.subject_id);
+    if(total_question_error){
+      console.log("There was an error in getting the question for a subject: ", total_question_error.message);
+      return null;
+    }
+    
+    const now_timestamptz = new Date().toISOString();
+    const {count : undue_question_count, error : undue_question_error} = await supabase.from("questions").select("*", {count:"exact", head:true}).gt("next_appearance", now_timestamptz).eq("subject_id", each.subject_id);
+    if(undue_question_error){
+      console.log("There was an error in getting the question for a subject: ", undue_question_error.message);
+      return null;
+    }
 
-  // Process each subject
-  const subjectsWithProgress = await Promise.all(
-    data.map(async (subject: any) => {
-      // Get latest quiz (original score logic)
-      let latestCorrect = 0;
-      let latestWrong = 0;
+    const {data : temp_score, error : temp_score_error} = await supabase
+      .from("quizzes")
+      .select("*, quiz_results(correct_items, wrong_items)")
+      .eq("subject_id", each.subject_id)
+      .order("date", {ascending:false})
+      .limit(1);
 
-      if (subject.quizzes && subject.quizzes.length > 0) {
-        const latestQuiz = subject.quizzes.reduce((prev: any, curr: any) => {
-          const prevDate = prev.date ? new Date(prev.date) : new Date(0);
-          const currDate = curr.date ? new Date(curr.date) : new Date(0);
-          return currDate > prevDate ? curr : prev;
-        });
+    if(temp_score_error){
+      console.log("Error in getting the latest score for this subject: ", temp_score_error.message);
+      return null;
+    }
 
-        if (latestQuiz && latestQuiz.quiz_results && latestQuiz.quiz_results.length > 0) {
-          latestCorrect = latestQuiz.quiz_results.reduce(
-            (sum: number, r: any) => sum + (r.correct_items || 0),
-            0
-          );
-          latestWrong = latestQuiz.quiz_results.reduce(
-            (sum: number, r: any) => sum + (r.wrong_items || 0),
-            0
-          );
-        }
-      }
 
-      const score = latestCorrect;
-      const maxScore = latestCorrect + latestWrong;
+    const latestQuiz = temp_score?.[0];
+    const latestResult = latestQuiz?.quiz_results?.[0];
 
-      // FIXED: Calculate progress based on spaced repetition
-      // Get questions directly linked to this subject
-      const { data: questions, error: questionsError } = await supabase
-        .from("questions")
-        .select("question_id, next_appearance")
-        .eq("subject_id", subject.subject_id);
+    const score = latestResult?.correct_items ?? 0;
+    const wrong = latestResult?.wrong_items ?? 0;
+    const total_score_latest_quiz = score + wrong;
 
-      if (questionsError) {
-        console.error(`Error fetching questions for subject ${subject.subject_name}:`, questionsError.message);
-      }
 
-      const totalQuestions = questions?.length || 0;
-      
-      // Count questions with next_appearance in the FUTURE (not yet due)
-      const questionsDueInFuture = questions?.filter((q: any) => {
-        if (!q.next_appearance) return false;
-        const nextAppearance = new Date(q.next_appearance);
-        return nextAppearance > now;
-      }).length || 0;
+    const undue = undue_question_count ?? 0;
+    const total = total_question_count ?? 0;
+    let temp_progress = total > 0 ? undue / total : 0;
+    temp_progress *= 100;
+    temp_progress = Math.round(temp_progress);
 
-      // Progress = (questions due in future / total) * 100
-      // Higher % = more learning ahead, lower % = more completed
-      const progress = totalQuestions > 0 
-        ? Math.round((questionsDueInFuture / totalQuestions) * 100) 
-        : 0;
+    let temp_completed = true;
+    if((total - undue) > 0){
+      temp_completed = false;
+    }
 
-      const completed = maxScore > 0 && score === maxScore;
-
-      return {
-        id: subject.subject_id,
-        name: subject.subject_name,
-        progress,
-        score,
-        maxScore,
-        completed,
-      };
-    })
-  );
-
-  return subjectsWithProgress;
+    return {
+      id: each.subject_id,
+      name: each.subject_name,
+      progress : temp_progress,
+      completed : temp_completed,
+      score : score,
+      maxScore : total_score_latest_quiz
+    };
+  })
+)).filter((item): item is SubjectRow => item !== null);  
+  return subjects_array;
 };
