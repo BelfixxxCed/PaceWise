@@ -84,7 +84,7 @@ const Index = () => {
         setIsProgressLoading(true);
         setError(null);
 
-        const subjectsData = await getSubjectsProgress();
+        const subjectsData = await getSubjectsProgress(userId);
 
         const transformedCourses: Course[] = subjectsData.map((subject) => ({
           id: subject.id,
@@ -160,7 +160,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <main className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1400px] ml-12">
           {/* Left column */}
