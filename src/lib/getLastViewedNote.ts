@@ -61,8 +61,6 @@ export const getLastViewedNote = async (userId: string): Promise<LastViewedNote 
       };
     }
 
-    console.log('Found subject:', subjectData);
-
     return {
       notes_id: noteData.notes_id,
       subject_id: noteData.subject_id,
