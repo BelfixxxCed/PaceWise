@@ -59,6 +59,8 @@ const subjects_array : SubjectRow[] = (await Promise.all(
     const wrong = latestResult?.wrong_items ?? 0;
     const total_score_latest_quiz = score + wrong;
 
+    // A subject has a completed quiz if there's a quiz result
+    const hasCompletedQuiz = !!latestResult && total_score_latest_quiz > 0;
 
     const undue = undue_question_count ?? 0;
     const total = total_question_count ?? 0;
@@ -66,16 +68,11 @@ const subjects_array : SubjectRow[] = (await Promise.all(
     temp_progress *= 100;
     temp_progress = Math.round(temp_progress);
 
-    let temp_completed = true;
-    if((total - undue) > 0){
-      temp_completed = false;
-    }
-
     return {
       id: each.subject_id,
       name: each.subject_name,
       progress : temp_progress,
-      completed : temp_completed,
+      completed : hasCompletedQuiz,
       score : score,
       maxScore : total_score_latest_quiz
     };
