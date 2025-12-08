@@ -176,6 +176,29 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
                 );
               })}
             </div>
+
+            <div className="flex justify-between items-center mt-8">
+              <button
+                onClick={() => setCurrentQuestion(currentQuestion - 1)}
+                disabled={currentQuestion === 0}
+                className={`px-6 py-3 rounded-xl font-medium transition-colors ${
+                  currentQuestion === 0
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-300 hover:bg-gray-400 text-gray-700"
+                }`}
+              >
+                Previous
+              </button>
+
+              {currentQuestion < quizResults.questions.length - 1 && (
+                <button
+                  onClick={() => setCurrentQuestion(currentQuestion + 1)}
+                  className="bg-green-400 hover:bg-green-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                >
+                  Next
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -197,7 +220,9 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
                 key={index}
                 onClick={() => setCurrentQuestion(index)}
                 className={`w-full px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-3 ${
-                  q.isCorrect
+                  currentQuestion === index
+                    ? 'bg-green-500 text-white border-2 border-green-600 shadow-md'
+                    : q.isCorrect
                     ? 'bg-green-100 text-green-700 border-2 border-green-200'
                     : 'bg-red-100 text-red-700 border-2 border-red-200'
                 }`}
