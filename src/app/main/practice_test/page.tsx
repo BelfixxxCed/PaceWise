@@ -26,24 +26,7 @@ export default function PracticeTestPage() {
 
 
   useEffect(() => {
-    // Check localStorage for completed quizzes
-    const updatedSubjects = subjects.map(subject => {
-      const quizResult = localStorage.getItem(`quiz_result_${subject.id}`);
-      if (quizResult) {
-        const result = JSON.parse(quizResult);
-        const progress = Math.round((result.score / result.total) * 100);
-        return {
-          ...subject,
-          completed: true,
-          score: result.score,
-          maxScore: result.total,
-          progress: progress
-        };
-      }
-      return subject;
-    });
-    setSubjects(updatedSubjects);
-    get_subject_data()
+    get_subject_data();
   }, []);
 
   

@@ -1,5 +1,4 @@
 import supabase from "@/supabase/supabase_client";
-import { error } from "console";
 
 interface SubjectRow {
   id: string;
@@ -59,23 +58,21 @@ const subjects_array : SubjectRow[] = (await Promise.all(
     const wrong = latestResult?.wrong_items ?? 0;
     const total_score_latest_quiz = score + wrong;
 
-
     const undue = undue_question_count ?? 0;
     const total = total_question_count ?? 0;
     let temp_progress = total > 0 ? undue / total : 0;
     temp_progress *= 100;
     temp_progress = Math.round(temp_progress);
 
-    let temp_completed = true;
-    if((total - undue) > 0){
-      temp_completed = false;
-    }
+    // A subject is completed when progress reaches 100% (all questions are undue/future)
+    // AND there's a quiz result available to view
+    const hasCompletedQuiz = temp_progress === 100 && !!latestResult && total_score_latest_quiz > 0;
 
     return {
       id: each.subject_id,
       name: each.subject_name,
       progress : temp_progress,
-      completed : temp_completed,
+      completed : hasCompletedQuiz,
       score : score,
       maxScore : total_score_latest_quiz
     };

@@ -127,14 +127,14 @@ export async function POST(req: Request) {
   if ("error" in auth) return auth.error;
   const { userId } = auth;
 
-  let body: { question_id?: string; isCorrect?: boolean; quiz_id?: string };
+  let body: { question_id?: string; isCorrect?: boolean; quiz_id?: string; userAnswer?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { question_id, isCorrect, quiz_id } = body;
+  const { question_id, isCorrect, quiz_id, userAnswer } = body;
   if (!question_id || typeof isCorrect !== "boolean") {
     return NextResponse.json(
       { error: "question_id and isCorrect are required" },
