@@ -84,7 +84,7 @@ const Index = () => {
         setIsProgressLoading(true);
         setError(null);
 
-        const subjectsData = await getSubjectsProgress(userId);
+        const subjectsData = await getSubjectsProgress();
 
         const transformedCourses: Course[] = subjectsData.map((subject) => ({
           id: subject.id,

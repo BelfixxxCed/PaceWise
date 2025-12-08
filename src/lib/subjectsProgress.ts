@@ -11,10 +11,21 @@ interface SubjectRow {
 }
 
 export const getSubjectsProgress = async (): Promise<SubjectRow[]> => {
+
+
+  // Get the userID
+   const {data : userID, error : userID_error} = await supabase.auth.getUser();
+   if (userID_error){
+    console.log("There was error in getting the userID: ", userID_error.message);
+    return [];
+   }
+   const temp_userID = userID.user.id
+
     // Let's get all of the subjects first:
     const {data : subject_list , error : subject_error} = await supabase
       .from("subjects")
-      .select(`subject_id, subject_name`);
+      .select(`subject_id, subject_name`)
+      .eq("user_id", temp_userID);
     
     if(subject_error){
       console.log("There was an error with the query of subjects: ", subject_error.message);
