@@ -17,7 +17,7 @@ function header() {
     const title_decide = () => {
         if (path == '/main/notes'){
             setTitle("Notes");
-        } else if (path == "/main/study_schedule"){
+        } else if (path == "/main/schedule"){
             setTitle("Study Schedule");
         } else if (path == "/main/practice_test"){
             setTitle("Practice Test");
