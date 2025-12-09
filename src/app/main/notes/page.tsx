@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pagination } from "@/components/ui/pagination";
 import { GET_subjects } from "@/components/notes/notes_page_supabase_queries";
 import LoadingModal from "@/components/loading_modal";
+import { Plus } from "lucide-react";
 
 type Subject = {
   subject_id: string;
@@ -40,6 +41,37 @@ function Page() {
     getData();
   }, [currentPage, totalPages]);
 
+  const timeAgo = (date: string): string => {
+    const now = new Date().getTime();
+    const past = new Date(date).getTime();
+    const diff = now - past;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (years >= 1) return `${years} year${years > 1 ? "s" : ""} ago`;
+    if (months >= 1) return `${months} month${months > 1 ? "s" : ""} ago`;
+    if (weeks >= 1) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+    if (days >= 1) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours >= 1) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (minutes >= 1) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    return "just now";
+  };
+
+  const formatDate = (date: string): string => {
+    const d = new Date(date);
+    return d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   const enterNotebook = (val: string) => {
     router.push(`/main/notes/notes_with_content?subject_id=${val}`);
   };
@@ -49,64 +81,59 @@ function Page() {
   }
 
   return (
-    <div>
-      {/* Nav section */}
-      <div className="mx-30 mt-10">
-        <div className="flex flex-row justify-between relative">
-          <div className="poppins-bold ml-8 border-b-3 px-3 border-[#71D285] w-min">
-            Notes
-          </div>
-          <button className="flex bg-[#71D285] gap-4 px-5 py-1 mb-4 rounded-2xl absolute right-0 top-[-30] items-center hover:bg-[#5eae6e]">
-            <Image
-              src="/main_notes_images/main_notes_plus.svg"
-              alt="Plus Icon"
-              width={20}
-              height={20}
-            />
+    <div className="min-h-screen ml-0 md:ml-0">
+      {/* Header section */}
+      <div className="px-8 py-6">
+        <div className="max-w-[1000px] mx-auto w-full border-b border-gray-200">
+          <div className="flex flex-row justify-end items-center py-2">
             <a href="/main/schedule#:~:text=%3A00%20AM-,Add%20Subject,-from">
-              <div className="text-white">add notes</div>
+              <button className="flex bg-[#71D285] gap-2 px-6 py-2 rounded-full text-white font-medium hover:bg-[#5eae6e] transition-colors items-center">
+                <Plus size={20} />
+                <span>add subject</span>
+              </button>
             </a>
-          </button>
+          </div>
         </div>
-        <hr className="border-[#71D285]"></hr>
       </div>
 
       {/* Main content */}
-      <div className="mx-30 gap-y-5 gap-x-10 justify-evenly flex flex-wrap mt-10">
-        {paginatedSubjects.map((subject) => (
-          <button
-            key={subject.subject_id}
-            onClick={() => enterNotebook(subject.subject_id)}
-          >
-            <div className="hover:shadow-2xl shadow-[#71D285] h-45 w-75 border-2 border-[#71D285] rounded-4xl overflow-hidden">
-              {/* Upper part of card */}
-              <div className="h-[35%] bg-[#71D285] relative">
-                <div className="text-white poppins-bold bottom-2 right-2 absolute">
-                  {subject.date_updated_difference || "Just now"}
+      <div className="px-8 py-12 max-w-[1100px] mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-x-4 gap-y-10 justify-items-center">
+          {paginatedSubjects.map((subject) => (
+            <button
+              key={subject.subject_id}
+              onClick={() => enterNotebook(subject.subject_id)}
+              className="group text-left hover:shadow-xl rounded-3xl transition-all duration-200 w-full max-w-[310px] bg-transparent hover:bg-gray-50"
+            >
+              <div className="border-2 border-[#71D285] rounded-3xl overflow-hidden bg-transparent hover:bg-gray-50 transition-colors">
+                {/* Upper part of card */}
+                <div className="h-12 bg-[#71D285] flex items-center justify-end px-4">
+                  <span className="text-white text-sm font-medium">
+                    {subject.date_updated_difference || timeAgo(subject.date_created)}
+                  </span>
+                </div>
+                {/* Lower part of card */}
+                <div className="p-6 bg-transparent">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 flex-shrink-0">
+                      <Image height={25} width={25} src="/reusable_ui_images/note_logo.svg" alt="Note icon" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-[#3E6E48]">{subject.subject_name}</h3>
+                      <p className="text-gray-500 text-sm mt-1">{formatDate(subject.date_created)}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Lower part of card */}
-              <div>
-                <div className='mx-3 my-2 pl-6'>
-                  <div className='poppins-extrabold text-3xl text-[#3E6E48] flex'>
-                    <img height={25} width={25} src={`/reusable_ui_images/note_logo.svg`}  className='mr-3'/>
-                    {subject.subject_name}
-                  </div>
-                  <div className="flex poppins-regular text-[#8E8B8B]">
-                    {subject.date_created}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="h-20" />
 
       <div className="fixed left-0 right-0 bottom-0 flex justify-center z-50 pointer-events-none">
-        <div className="mx-30 w-full flex justify-center pointer-events-auto">
+        <div className="w-full flex justify-center pointer-events-auto">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
