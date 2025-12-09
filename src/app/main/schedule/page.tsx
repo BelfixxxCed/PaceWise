@@ -28,7 +28,7 @@ interface Subject {
   endPeriod: "AM" | "PM";
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 4;
 
 export default function Page() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
