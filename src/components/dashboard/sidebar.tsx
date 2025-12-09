@@ -13,7 +13,7 @@ function Sidebar() {
   const router = useRouter();
 
   const title_decide = () => {
-    if (path == "/main/notes") {
+    if (path.startsWith("/main/notes")) {
       setTitle(2);
     } else if (path == "/main/schedule") {
       setTitle(1);
