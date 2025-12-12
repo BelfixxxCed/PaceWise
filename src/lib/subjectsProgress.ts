@@ -31,8 +31,13 @@ const subjects_array : SubjectRow[] = (await Promise.all(
       return null;
     }
     
-    const now_timestamptz = new Date().toISOString();
-    const {count : undue_question_count, error : undue_question_error} = await supabase.from("questions").select("*", {count:"exact", head:true}).gt("next_appearance", now_timestamptz).eq("subject_id", each.subject_id);
+    // Get tomorrow's date at midnight (start of day) to check if questions are scheduled for future dates
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrow_timestamptz = tomorrow.toISOString();
+    
+    const {count : undue_question_count, error : undue_question_error} = await supabase.from("questions").select("*", {count:"exact", head:true}).gte("next_appearance", tomorrow_timestamptz).eq("subject_id", each.subject_id);
     if(undue_question_error){
       console.log("There was an error in getting the question for a subject: ", undue_question_error.message);
       return null;
@@ -60,13 +65,30 @@ const subjects_array : SubjectRow[] = (await Promise.all(
 
     const undue = undue_question_count ?? 0;
     const total = total_question_count ?? 0;
-    let temp_progress = total > 0 ? undue / total : 0;
-    temp_progress *= 100;
+    
+    // Handle case when no questions exist yet
+    if (total === 0) {
+      return {
+        id: each.subject_id,
+        name: each.subject_name,
+        progress: 0,
+        completed: false,
+        score: 0,
+        maxScore: 0
+      };
+    }
+    
+    // Progress = percentage of questions that are "done" (scheduled for tomorrow or later)
+    // undue already represents the count of done questions
+    const done = undue;
+    let temp_progress = (done / total) * 100;
     temp_progress = Math.round(temp_progress);
 
-    // A subject is completed when progress reaches 100% (all questions are undue/future)
-    // AND there's a quiz result available to view
-    const hasCompletedQuiz = temp_progress === 100 && !!latestResult && total_score_latest_quiz > 0;
+    console.log("for", each.subject_name, "done:", done, "/", total, "=", temp_progress + "%");
+
+    // A subject is completed when progress reaches 100% (all questions done)
+    // AND there's a quiz result available
+    const hasCompletedQuiz = temp_progress === 100 && !!latestResult;
 
     return {
       id: each.subject_id,
