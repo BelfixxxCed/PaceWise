@@ -15,9 +15,9 @@ function Sidebar() {
   const title_decide = () => {
     if (path.startsWith("/main/notes")) {
       setTitle(2);
-    } else if (path == "/main/schedule") {
+    } else if (path.startsWith("/main/schedule")) {
       setTitle(1);
-    } else if (path == "/main/practice_test") {
+    } else if (path.startsWith("/main/practice_test")) {
       setTitle(3);
     }
   };
