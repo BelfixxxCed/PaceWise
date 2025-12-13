@@ -12,7 +12,7 @@ function Sidebar() {
   const path = usePathname();
   const router = useRouter();
 
-  const title_decide = () => {
+  useEffect(() => {
     if (path.startsWith("/main/notes")) {
       setTitle(2);
     } else if (path.startsWith("/main/schedule")) {
@@ -20,7 +20,7 @@ function Sidebar() {
     } else if (path.startsWith("/main/practice_test")) {
       setTitle(3);
     }
-  };
+  }, [path]);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -42,10 +42,6 @@ function Sidebar() {
       setIsSigningOut(false);
     }
   };
-
-  useEffect(() => {
-    title_decide();
-  }, []);
 
   return (
     <div className="fixed left-0 top-0 h-screen w-20 hover:w-64 bg-[#71D285] z-50 group flex flex-col justify-between transition-all duration-300 ease-in-out">
