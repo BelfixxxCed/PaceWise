@@ -71,6 +71,25 @@ export default function Page() {
     }
 
     initializeData();
+
+    // Listen for subject creations from other pages (notes page)
+    let channel: BroadcastChannel | null = null
+    try {
+      channel = new BroadcastChannel("subjects")
+      channel.onmessage = (ev) => {
+        const msg = ev.data
+        if (msg?.type === "created") {
+          // re-run initialization to refresh list
+          initializeData()
+        }
+      }
+    } catch (e) {
+      // ignore if BroadcastChannel not supported
+    }
+
+    return () => {
+      if (channel) channel.close()
+    }
   }, []);
 
   const handleAddSubject = async (newSubject: Omit<Subject, "id">) => {

@@ -14,6 +14,8 @@ function header() {
     const [name, setName] = useState("Loading...")
     const [pfp, set_pfp] = useState("/blank-user-svgrepo-com.svg")
 
+
+
     const title_decide = () => {
         if (path == '/main/notes'){
             setTitle("Notes");
@@ -26,7 +28,8 @@ function header() {
     }
 
     const verifyUser = async () => {
-        const { data, error } = await supabase.auth.getUser(); //This needs to be changed into getSession but in a way that it is not disruptive
+    const { data, error } = await supabase.auth.getUser(); //This needs to be changed into getSession but in a way that it is not disruptive
+
 
         if (error) {
             console.log("There was an error checking your authorization:", error.message);
