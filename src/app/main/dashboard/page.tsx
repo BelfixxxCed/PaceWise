@@ -139,7 +139,7 @@ const Index = () => {
       <div>
         <main className="p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1400px] ml-12">
-            {/* Left column - Main content */}
+    
             <div className="lg:col-span-2 space-y-6">
               <WelcomeCard userName={userName} />
               
@@ -155,7 +155,7 @@ const Index = () => {
               />
             </div>
             
-            {/* Right column - Stats and cards */}
+          
             <div className="space-y-6">
               <TimeStudiedCard 
                 hours={timeStudied.hours} 

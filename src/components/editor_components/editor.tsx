@@ -184,6 +184,17 @@ export default function MyEditorPage({ subjectId }: Props) {
     };
   }, []);
 
+
+  const saveNote = () => {
+    if (!editor) return;
+    try {
+      const value = (editor?.children ?? null) as EditorNode[] | null;
+      if (value) localStorage.setItem("editorContent", JSON.stringify(value));
+    } catch (e) {
+      console.error('Failed to save note', e);
+    }
+  }
+
   return (
     <Plate
       editor={editor}
@@ -205,6 +216,7 @@ export default function MyEditorPage({ subjectId }: Props) {
         <MarkToolbarButton nodeType="underline" tooltip="Underline (⌘+U)">
           U
         </MarkToolbarButton>
+        <ToolbarButton onClick={saveNote}>Save</ToolbarButton>
       </FixedToolbar>
       <EditorContainer>
         <Editor placeholder="Type your amazing content here..." />
