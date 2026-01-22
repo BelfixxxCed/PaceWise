@@ -26,7 +26,7 @@ const Index = () => {
 
   const [timeStudied, setTimeStudied] = useState({ hours: 0, minutes: 0 });
 
-  // 🔥 Your last-viewed subject feature
+  // Features for multi-page subject tracking
   const [lastViewedSubject, setLastViewedSubject] = useState<string>("Last Viewed Course");
   const [lastViewedSubjectId, setLastViewedSubjectId] = useState<string | null>(null);
   const [isLastViewedLoading, setIsLastViewedLoading] = useState(true);
@@ -123,7 +123,7 @@ const Index = () => {
     fetchQuizzes();
   }, [userId]);
 
-  // 🔥 Fetch last viewed subject
+  // Fetch last viewed subject (Supports multi-page structure)
   useEffect(() => {
     const fetchLastViewed = async () => {
       if (!userId) return;
@@ -160,10 +160,11 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <main className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1400px] ml-12">
-          {/* Left column */}
+          
+          {/* Left column: Main Welcome and Progress */}
           <div className="lg:col-span-2 space-y-6">
             <WelcomeCard userName={userName} />
 
@@ -179,7 +180,7 @@ const Index = () => {
             />
           </div>
 
-          {/* Right column */}
+          {/* Right column: Stats and Last Viewed */}
           <div className="space-y-6">
             <TimeStudiedCard
               hours={timeStudied.hours}
@@ -191,6 +192,7 @@ const Index = () => {
               isLoading={isQuizzesLoading}
             />
 
+            {/* This component preserves your multi-page subject navigation */}
             <LastViewedCourseCard
               subjectName={lastViewedSubject}
               subjectId={lastViewedSubjectId}
