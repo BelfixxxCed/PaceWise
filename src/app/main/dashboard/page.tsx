@@ -11,6 +11,7 @@ import { getSubjectsProgress } from "@/lib/subjectsProgress";
 import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
 import { initTimeTracking, getCurrentTimeStudied } from "@/lib/timeTracker";
 import { getLastViewedNote } from "@/lib/getLastViewedNote";
+import { StreakCard } from "@/components/dashboard/StreakCard";
 
 const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -182,6 +183,7 @@ const Index = () => {
 
           {/* Right column: Stats and Last Viewed */}
           <div className="space-y-6">
+            <StreakCard />
             <TimeStudiedCard
               hours={timeStudied.hours}
               minutes={timeStudied.minutes}
