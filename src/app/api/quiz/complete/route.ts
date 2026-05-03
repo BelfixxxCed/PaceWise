@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth";
 import { supabaseAdmin } from "@/supabase/supabase_admin";
+import { maybeIncrementStreak } from "@/lib/streak";
 
 export async function POST(req: Request) {
   const auth = await getUserId(req);
@@ -70,6 +71,8 @@ export async function POST(req: Request) {
   if (updateErr) {
     return NextResponse.json({ error: updateErr.message }, { status: 500 });
   }
+
+  await maybeIncrementStreak(userId);
 
   return NextResponse.json(
     {
