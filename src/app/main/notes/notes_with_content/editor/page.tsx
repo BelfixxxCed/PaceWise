@@ -129,7 +129,6 @@ export default function Page() {
       {/* Flashcard modal */}
       {isFlashcardOpen && subjectId && (
         <CreateFlashcardModal
-          noteId={noteId}
           subjectId={subjectId}
           onClose={() => setIsFlashcardOpen(false)}
         />
