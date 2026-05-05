@@ -29,12 +29,31 @@ export function StreakCard() {
     fetchStreak()
   }, [])
 
+  const getDisplayStreak = (): number | string => {
+    if (streak === null) return "—"
+    if (!lastActive) return 0
+    
+    const d = new Date(lastActive)
+    const now = new Date()
+    const dDay = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    const nowDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    const diffDays = Math.floor((nowDay - dDay) / (1000 * 60 * 60 * 24))
+    
+    if (diffDays > 1) {
+      return 0
+    }
+    return streak
+  }
+
   const formatLastActive = (dateStr: string | null): string => {
     if (!dateStr) return "Never"
     const d = new Date(dateStr)
     const now = new Date()
-    const diffMs = now.getTime() - d.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    
+    const dDay = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    const nowDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    const diffDays = Math.floor((nowDay - dDay) / (1000 * 60 * 60 * 24))
+
     if (diffDays === 0) return "Today"
     if (diffDays === 1) return "Yesterday"
     return `${diffDays} days ago`
@@ -50,6 +69,8 @@ export function StreakCard() {
       d.getUTCDate() === now.getUTCDate()
     )
   }
+
+  const displayStreak = getDisplayStreak()
 
   return (
     <div className="bg-white border border-gray-100 rounded-4xl p-6 shadow-sm">
@@ -73,10 +94,10 @@ export function StreakCard() {
             isActiveToday() ? "text-orange-500" : "text-gray-300"
           }`}
         >
-          {streak ?? "—"}
+          {displayStreak}
         </span>
         <span className="text-gray-500 mb-2 text-sm">
-          {streak === 1 ? "day" : "days"}
+          {displayStreak === 1 ? "day" : "days"}
         </span>
       </div>
 
@@ -84,7 +105,7 @@ export function StreakCard() {
         Last active: {formatLastActive(lastActive)}
       </p>
 
-      {!isActiveToday() && streak !== null && streak > 0 && (
+      {!isActiveToday() && typeof displayStreak === "number" && displayStreak > 0 && (
         <p className="text-xs text-orange-400 mt-1 font-medium">
           ⚠ Study today to keep your streak!
         </p>
