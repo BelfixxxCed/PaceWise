@@ -1,61 +1,59 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { X, Layers, CheckCircle } from "lucide-react"
-import supabase from "@/supabase/supabase_client"
+import { useState } from "react";
+import { X, Layers, CheckCircle } from "lucide-react";
+import supabase from "@/supabase/supabase_client";
 
 interface Props {
-  noteId: string
-  subjectId: string
-  onClose: () => void
+  subjectId: string;
+  onClose: () => void;
 }
 
-export default function CreateFlashcardModal({ noteId, subjectId, onClose }: Props) {
-  const [question, setQuestion] = useState("")
-  const [answer, setAnswer] = useState("")
-  const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default function CreateFlashcardModal({
+  subjectId,
+  onClose,
+}: Props) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!question.trim() || !answer.trim()) {
-      setError("Both question and answer are required.")
-      return
+      setError("Both question and answer are required.");
+      return;
     }
 
-    setSaving(true)
-    setError(null)
+    setSaving(true);
+    setError(null);
 
     try {
-      const { error: insertError } = await supabase.from("questions").insert([
+      const { error: insertError } = await supabase.from("flashcards").insert([
         {
           subject_id: subjectId,
-          notes_id: noteId,
           question: question.trim(),
           answer: answer.trim(),
-          repetition: 0,
-          ease_factor: 1.5,
-          interval: 0,
         },
-      ])
+      ]);
 
       if (insertError) {
-        setError(insertError.message)
-        return
+        setError(insertError.message);
+        return;
       }
 
-      setSuccess(true)
-      setQuestion("")
-      setAnswer("")
+      setSuccess(true);
+      setQuestion("");
+      setAnswer("");
       setTimeout(() => {
-        setSuccess(false)
-      }, 2000)
+        setSuccess(false);
+      }, 2000);
     } catch (err) {
-      setError("Failed to save flashcard. Try again.")
+      setError("Failed to save flashcard. Try again.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -83,9 +81,7 @@ export default function CreateFlashcardModal({ noteId, subjectId, onClose }: Pro
             </div>
           )}
 
-          {error && (
-            <p className="text-sm text-red-500 px-1">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500 px-1">{error}</p>}
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -132,5 +128,5 @@ export default function CreateFlashcardModal({ noteId, subjectId, onClose }: Pro
         </div>
       </div>
     </div>
-  )
+  );
 }

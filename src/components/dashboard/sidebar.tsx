@@ -17,7 +17,7 @@ function Sidebar() {
       setTitle(2);
     } else if (path.startsWith("/main/schedule")) {
       setTitle(1);
-    } else if (path.startsWith("/main/practice_test")) {
+    } else if (path.startsWith("/main/flashcards")) {
       setTitle(3);
     }
   }, [path]);
@@ -131,7 +131,7 @@ function Sidebar() {
           </a>
 
           <a
-            href="/main/practice_test"
+            href="/main/flashcards"
             className={`${
               title == 3
                 ? "bg-[#E9F5FE] font-bold"
@@ -140,15 +140,15 @@ function Sidebar() {
           >
             <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
               <Image
-                src="/reusable_ui_images/practice_test.svg"
-                alt="practice test button"
+                src="/reusable_ui_images/flashcards.svg"
+                alt="flashcards button"
                 width={29}
                 height={29}
                 className="object-contain"
               />
             </div>
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              Practice Test
+              Flashcards
             </p>
           </a>
         </div>
