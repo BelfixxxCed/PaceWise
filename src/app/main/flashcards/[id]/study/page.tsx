@@ -86,6 +86,18 @@ export default function Home() {
         } catch (e) {
           // ignore
         }
+
+        // Trigger streak update when they successfully load flashcards to study
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          fetch("/api/streak", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }).catch((err) => console.error("Failed to update streak:", err));
+        }
+
       } finally {
         setLoading(false);
       }
