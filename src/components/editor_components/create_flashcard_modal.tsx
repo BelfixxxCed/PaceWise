@@ -59,16 +59,16 @@ export default function CreateFlashcardModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-blue-50">
-          <div className="flex items-center gap-2 text-blue-700 font-semibold">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#e8f8ec]">
+          <div className="flex items-center gap-2 text-[#3E6E48] font-semibold">
             <Layers size={20} />
             <span>Create Flashcard</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-[#d0f0d8] rounded-lg transition-colors"
           >
-            <X size={18} className="text-blue-500" />
+            <X size={18} className="text-[#71D285]" />
           </button>
         </div>
 
@@ -92,7 +92,7 @@ export default function CreateFlashcardModal({
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Enter your question..."
               rows={3}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#71D285] resize-none"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function CreateFlashcardModal({
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Enter the answer..."
               rows={3}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#71D285] resize-none"
             />
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function CreateFlashcardModal({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50"
+            className="px-5 py-2 rounded-full bg-[#71D285] text-white hover:bg-[#5eae6e] transition-colors font-medium text-sm disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Flashcard"}
           </button>
