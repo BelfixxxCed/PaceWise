@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Trash2, Plus, ArrowLeft, Search, Tag, X } from "lucide-react"
+import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import supabase from "@/supabase/supabase_client"
 
@@ -28,6 +28,12 @@ function NotesContent() {
   const ITEMS_PER_PAGE = 5
 
   // Filter notes by tag search
+  const pageNumberMap: Record<string, number> = Object.fromEntries(
+    [...notes]
+      .sort((a, b) => new Date(a.date_created).getTime() - new Date(b.date_created).getTime())
+      .map((note, idx) => [note.notes_id, idx + 1])
+  )
+
   const filteredNotes = searchQuery.trim()
     ? notes.filter((note) =>
         note.tags?.some((tag) =>
@@ -85,7 +91,11 @@ function NotesContent() {
               return { ...note, tags }
             })
           )
-          setNotes(notesWithTags)
+          setNotes(
+            [...notesWithTags].sort(
+              (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
+            )
+          )
         }
       } catch (err) {
         console.error("Failed to fetch notes:", err)
@@ -234,8 +244,8 @@ function NotesContent() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {paginatedNotes.map((note, idx) => {
-                const noteNumber = notes.findIndex((n) => n.notes_id === note.notes_id) + 1
+              {paginatedNotes.map((note) => {
+                const noteNumber = pageNumberMap[note.notes_id] ?? 0
                 return (
                   <div
                     key={note.notes_id}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Tag, Plus } from "lucide-react"
+import { X, Tag, Plus, Trash2 } from "lucide-react"
 import supabase from "@/supabase/supabase_client"
 
 interface TagItem {
@@ -71,12 +71,21 @@ export default function TagsPanel({ noteId, onClose }: Props) {
     const name = newTagName.trim()
     if (!name) return
 
+    // If a tag with the same name already exists, just attach it
+    const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      if (!isAttached(existing.id)) {
+        await toggleTag(existing)
+      }
+      setNewTagName("")
+      return
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) return
 
-    // Create the tag
     const { data: created, error } = await supabase
       .from("tags")
       .insert([{ name, user_id: user.id }])
@@ -85,12 +94,19 @@ export default function TagsPanel({ noteId, onClose }: Props) {
 
     if (error || !created) return
 
-    // Attach to note
     await supabase.from("tags-notes").insert([{ tag_id: created.id, notes_id: noteId }])
 
     setUserTags((prev) => [...prev, created])
     setNoteTags((prev) => [...prev, created])
     setNewTagName("")
+  }
+
+  const deleteTag = async (tag: TagItem, e: React.MouseEvent) => {
+    e.stopPropagation()
+    await supabase.from("tags-notes").delete().eq("tag_id", tag.id)
+    await supabase.from("tags").delete().eq("id", tag.id)
+    setUserTags((prev) => prev.filter((t) => t.id !== tag.id))
+    setNoteTags((prev) => prev.filter((t) => t.id !== tag.id))
   }
 
   return (
@@ -152,18 +168,26 @@ export default function TagsPanel({ noteId, onClose }: Props) {
             <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Your Tags</p>
             <div className="flex flex-wrap gap-1">
               {userTags.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag)}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    isAttached(tag.id)
-                      ? "bg-[#71D285] text-white border-[#71D285]"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-[#71D285] hover:text-[#3E6E48]"
-                  }`}
-                >
-                  <Tag size={10} />
-                  {tag.name}
-                </button>
+                <div key={tag.id} className="group relative inline-flex items-center">
+                  <button
+                    onClick={() => toggleTag(tag)}
+                    className={`flex items-center gap-1 pl-3 pr-6 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      isAttached(tag.id)
+                        ? "bg-[#71D285] text-white border-[#71D285]"
+                        : "bg-white text-gray-600 border-gray-200 hover:border-[#71D285] hover:text-[#3E6E48]"
+                    }`}
+                  >
+                    <Tag size={10} />
+                    {tag.name}
+                  </button>
+                  <button
+                    onClick={(e) => deleteTag(tag, e)}
+                    title="Delete tag"
+                    className="absolute right-1.5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:text-red-500 text-gray-400"
+                  >
+                    <Trash2 size={9} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>

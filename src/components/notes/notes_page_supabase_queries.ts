@@ -31,9 +31,16 @@ export const GET_subjects = async () => {
   return fixed_datetime;
 };
 
+const toUTC = (timestamp: string | Date): number => {
+  if (timestamp instanceof Date) return timestamp.getTime();
+  // Supabase returns timestamps without timezone suffix — force UTC parsing
+  const ts = /[Zz]|[+-]\d{2}:?\d{2}$/.test(timestamp) ? timestamp : timestamp + "Z";
+  return new Date(ts).getTime();
+};
+
 const timeAgo = (timestamp: string | Date): string => {
   const now = new Date().getTime();
-  const past = new Date(timestamp).getTime();
+  const past = toUTC(timestamp);
 
   const diff = Math.floor((now - past) / 1000);
 
