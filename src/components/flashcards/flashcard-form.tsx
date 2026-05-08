@@ -33,7 +33,7 @@ export function FlashcardForm({
     return (
       <button
         onClick={onOpen}
-        className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold flex items-center gap-2 mb-6 transition"
+        className="px-5 py-2 bg-[#71D285] hover:bg-[#5eae6e] text-white rounded-full font-semibold flex items-center gap-2 mb-6 transition"
       >
         <Plus size={18} />
         Add New Card
@@ -42,7 +42,7 @@ export function FlashcardForm({
   }
 
   return (
-    <div className="border-2 border-green-500 rounded-3xl p-8 mb-6 bg-white">
+    <div className="border-2 border-[#71D285] rounded-3xl p-8 mb-6 bg-white">
       <h3 className="text-xl font-bold text-gray-800 mb-6">Add New Card</h3>
 
       <div className="mb-6">
@@ -53,7 +53,7 @@ export function FlashcardForm({
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Enter your question..."
-          className="w-full px-4 py-3 border-2 border-green-500 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
+          className="w-full px-4 py-3 border-2 border-[#71D285] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#71D285] resize-none"
           rows={4}
           disabled={isSubmitting}
         />
@@ -65,7 +65,7 @@ export function FlashcardForm({
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           placeholder="Enter the answer..."
-          className="w-full px-4 py-3 border-2 border-green-500 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
+          className="w-full px-4 py-3 border-2 border-[#71D285] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#71D285] resize-none"
           rows={4}
           disabled={isSubmitting}
         />
@@ -75,7 +75,7 @@ export function FlashcardForm({
         <button
           onClick={handleSubmit}
           disabled={isSubmitting || !question.trim() || !answer.trim()}
-          className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2 bg-[#71D285] hover:bg-[#5eae6e] text-white rounded-full font-semibold flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={18} />
           {isSubmitting ? "Adding..." : "Add Card"}

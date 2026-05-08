@@ -86,7 +86,8 @@ export default function Page() {
 
   const timeAgo = (date: string): string => {
     const now = new Date().getTime()
-    const past = new Date(date).getTime()
+    const ts = /[Zz]|[+-]\d{2}:?\d{2}$/.test(date) ? date : date + "Z"
+    const past = new Date(ts).getTime()
     const diff = now - past
     const seconds = Math.floor(diff / 1000)
     const minutes = Math.floor(seconds / 60)

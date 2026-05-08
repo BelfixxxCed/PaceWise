@@ -1,10 +1,10 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination";
-import supabase from "@/supabase/supabase_client";
+import { Suspense, useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react"
+import { Pagination } from "@/components/ui/pagination"
+import supabase from "@/supabase/supabase_client"
 
 interface Note {
   notes_id: string;
@@ -32,6 +32,12 @@ function NotesContent() {
   const ITEMS_PER_PAGE = 5;
 
   // Filter notes by tag search
+  const pageNumberMap: Record<string, number> = Object.fromEntries(
+    [...notes]
+      .sort((a, b) => new Date(a.date_created).getTime() - new Date(b.date_created).getTime())
+      .map((note, idx) => [note.notes_id, idx + 1])
+  )
+
   const filteredNotes = searchQuery.trim()
     ? notes.filter((note) =>
         note.tags?.some((tag) =>
@@ -53,15 +59,23 @@ function NotesContent() {
   }, [currentPage, totalPages]);
 
   useEffect(() => {
-    if (!subjectId) return;
+    if (!subjectId) {
+      setSubjectName("Subject");
+      setIsLoading(false);
+      return;
+    }
 
     const fetchSubjectName = async () => {
-      const { data } = await supabase
-        .from("subjects")
-        .select("subject_name")
-        .eq("subject_id", subjectId)
-        .single();
-      setSubjectName(data?.subject_name ?? "Subject");
+      try {
+        const { data } = await supabase
+          .from("subjects")
+          .select("subject_name")
+          .eq("subject_id", subjectId)
+          .single();
+        setSubjectName(data?.subject_name ?? "Subject");
+      } catch {
+        setSubjectName("Subject");
+      }
     };
 
     const fetchNotes = async () => {
@@ -92,6 +106,7 @@ function NotesContent() {
               return { ...note, tags };
             }),
           );
+
           setNotes(notesWithTags);
         }
       } catch (err) {
@@ -100,7 +115,6 @@ function NotesContent() {
         setIsLoading(false);
       }
     };
-
     fetchSubjectName();
     fetchNotes();
   }, [subjectId]);
@@ -138,7 +152,7 @@ function NotesContent() {
   const deleteNote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await supabase.from("notes_pages").delete().eq("notes_id", id);
+      await supabase.from("notes").delete().eq("notes_id", id);
       setNotes((prev) => prev.filter((n) => n.notes_id !== id));
     } catch (err) {
       console.error("Failed to delete note:", err);
@@ -256,8 +270,7 @@ function NotesContent() {
           ) : (
             <div className="divide-y divide-gray-100">
               {paginatedNotes.map((note) => {
-                const noteNumber =
-                  notes.findIndex((n) => n.notes_id === note.notes_id) + 1;
+                const noteNumber = pageNumberMap[note.notes_id] ?? 0
                 return (
                   <div
                     key={note.notes_id}
