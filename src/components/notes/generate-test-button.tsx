@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 // QUIZ FEATURE DISABLED
 /*
@@ -37,6 +37,6 @@ export default function GenerateTestButton({ subjectId }: { subjectId: string })
 }
 */
 
-export default function GenerateTestButton(_props: { subjectId: string }) {
+export default function GenerateTestButton() {
   return null;
 }

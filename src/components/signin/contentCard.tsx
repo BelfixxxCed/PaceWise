@@ -1,20 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import supabase from "@/supabase/supabase_client";
-
 
 interface ContentCardProps {
   variant?: "desktop" | "mobile";
 }
 
 export default function ContentCard({ variant = "desktop" }: ContentCardProps) {
-  const router = useRouter();
-
-// this handles Google Sign-In blabla
+  // this handles Google Sign-In blabla
   const handleGoogleSignIn = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/main/dashboard`, // redirect after login

@@ -1,31 +1,35 @@
-"use client"
+"use client";
 
-import { Suspense, useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Trash2, Plus, ArrowLeft, Search, Tag, X } from "lucide-react"
-import { Pagination } from "@/components/ui/pagination"
-import supabase from "@/supabase/supabase_client"
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
+import supabase from "@/supabase/supabase_client";
 
 interface Note {
-  notes_id: string
-  subject_id: string
-  date_created: string
-  updated_at: string
-  tags?: { id: string; name: string }[]
+  notes_id: string;
+  subject_id: string;
+  date_created: string;
+  updated_at: string;
+  tags?: { id: string; name: string }[];
 }
 
+type TagLink = {
+  tags?: { id: string; name: string } | { id: string; name: string }[] | null;
+};
+
 function NotesContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const subjectId = searchParams.get("subject_id") ?? ""
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const subjectId = searchParams.get("subject_id") ?? "";
 
-  const [notes, setNotes] = useState<Note[]>([])
-  const [subjectName, setSubjectName] = useState("Loading...")
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [subjectName, setSubjectName] = useState("Loading...");
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 5
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   // Filter notes by tag search
   const pageNumberMap: Record<string, number> = Object.fromEntries(
@@ -37,43 +41,46 @@ function NotesContent() {
   const filteredNotes = searchQuery.trim()
     ? notes.filter((note) =>
         note.tags?.some((tag) =>
-          tag.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+          tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
       )
-    : notes
+    : notes;
 
-  const totalPages = Math.max(1, Math.ceil(filteredNotes.length / ITEMS_PER_PAGE))
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedNotes = filteredNotes.slice(startIndex, endIndex)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredNotes.length / ITEMS_PER_PAGE),
+  );
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedNotes = filteredNotes.slice(startIndex, endIndex);
 
   useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(1)
-  }, [currentPage, totalPages])
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [currentPage, totalPages]);
 
   useEffect(() => {
-    if (!subjectId) return
+    if (!subjectId) return;
 
     const fetchSubjectName = async () => {
       const { data } = await supabase
         .from("subjects")
         .select("subject_name")
         .eq("subject_id", subjectId)
-        .single()
-      setSubjectName(data?.subject_name ?? "Subject")
-    }
+        .single();
+      setSubjectName(data?.subject_name ?? "Subject");
+    };
 
     const fetchNotes = async () => {
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession()
-        if (!session) return
+        } = await supabase.auth.getSession();
+        if (!session) return;
 
         const res = await fetch(`/api/notes?subject_id=${subjectId}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-        const result = await res.json()
+        });
+        const result = await res.json();
         if (res.ok && Array.isArray(result.data)) {
           // For each note, fetch its tags
           const notesWithTags = await Promise.all(
@@ -81,40 +88,40 @@ function NotesContent() {
               const { data: tagLinks } = await supabase
                 .from("tags-notes")
                 .select("tag_id, tags(id, name)")
-                .eq("notes_id", note.notes_id)
+                .eq("notes_id", note.notes_id);
 
               const tags = (tagLinks ?? [])
-                .map((tl: any) => tl.tags)
+                .map((tl) => (tl as TagLink).tags)
                 .filter(Boolean)
-                .flat()
+                .flat();
 
-              return { ...note, tags }
-            })
-          )
+              return { ...note, tags };
+            }),
+          );
           setNotes(
             [...notesWithTags].sort(
               (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
             )
-          )
+          );
         }
       } catch (err) {
-        console.error("Failed to fetch notes:", err)
+        console.error("Failed to fetch notes:", err);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchSubjectName()
-    fetchNotes()
-  }, [subjectId])
+    fetchSubjectName();
+    fetchNotes();
+  }, [subjectId]);
 
   const addNote = async () => {
-    if (!subjectId) return
+    if (!subjectId) return;
     try {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
-      if (!session) return
+      } = await supabase.auth.getSession();
+      if (!session) return;
 
       const res = await fetch(`/api/notes`, {
         method: "POST",
@@ -126,41 +133,43 @@ function NotesContent() {
           subject_id: subjectId,
           notes_json: [{ type: "p", children: [{ text: "" }] }],
         }),
-      })
-      const result = await res.json()
+      });
+      const result = await res.json();
       if (res.ok && result.data) {
-        router.push(`/main/notes/notes_with_content/editor?note_id=${result.data.notes_id}`)
+        router.push(
+          `/main/notes/notes_with_content/editor?note_id=${result.data.notes_id}`,
+        );
       }
     } catch (err) {
-      console.error("Failed to add note:", err)
+      console.error("Failed to add note:", err);
     }
-  }
+  };
 
   const deleteNote = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
     try {
-      await supabase.from("notes_pages").delete().eq("notes_id", id)
-      setNotes((prev) => prev.filter((n) => n.notes_id !== id))
+      await supabase.from("notes_pages").delete().eq("notes_id", id);
+      setNotes((prev) => prev.filter((n) => n.notes_id !== id));
     } catch (err) {
-      console.error("Failed to delete note:", err)
+      console.error("Failed to delete note:", err);
     }
-  }
+  };
 
   const formatDateDisplay = (date: string): string => {
-    const d = new Date(date)
+    const d = new Date(date);
     return d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-lg text-gray-500">Loading notes...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -177,7 +186,9 @@ function NotesContent() {
               >
                 <ArrowLeft size={24} className="text-gray-700" />
               </button>
-              <h1 className="text-3xl font-bold text-[#3E6E48]">{subjectName}</h1>
+              <h1 className="text-3xl font-bold text-[#3E6E48]">
+                {subjectName}
+              </h1>
             </div>
 
             <div className="flex gap-3">
@@ -207,19 +218,26 @@ function NotesContent() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Search by tag..."
                 className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-gray-400 hover:text-gray-600">
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <X size={14} />
                 </button>
               )}
             </div>
             {searchQuery && (
               <p className="text-xs text-gray-400 mt-1 ml-4">
-                {filteredNotes.length} note{filteredNotes.length !== 1 ? "s" : ""} found
+                {filteredNotes.length} note
+                {filteredNotes.length !== 1 ? "s" : ""} found
               </p>
             )}
           </div>
@@ -236,7 +254,10 @@ function NotesContent() {
               ) : (
                 <>
                   <p className="mb-4">No notes yet for this subject.</p>
-                  <button onClick={addNote} className="text-[#71D285] font-semibold hover:underline">
+                  <button
+                    onClick={addNote}
+                    className="text-[#71D285] font-semibold hover:underline"
+                  >
                     Create your first note
                   </button>
                 </>
@@ -245,7 +266,7 @@ function NotesContent() {
           ) : (
             <div className="divide-y divide-gray-100">
               {paginatedNotes.map((note) => {
-                const noteNumber = pageNumberMap[note.notes_id] ?? 0
+                const noteNumber = pageNumberMap[note.notes_id] ?? 0;
                 return (
                   <div
                     key={note.notes_id}
@@ -253,22 +274,26 @@ function NotesContent() {
                     tabIndex={0}
                     onClick={() =>
                       router.push(
-                        `/main/notes/notes_with_content/editor?note_id=${note.notes_id}`
+                        `/main/notes/notes_with_content/editor?note_id=${note.notes_id}`,
                       )
                     }
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ")
                         router.push(
-                          `/main/notes/notes_with_content/editor?note_id=${note.notes_id}`
-                        )
+                          `/main/notes/notes_with_content/editor?note_id=${note.notes_id}`,
+                        );
                     }}
                     className="flex flex-col py-4 px-2 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
                   >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-[#3E6E48]">Page {noteNumber}</h3>
+                      <h3 className="text-lg font-semibold text-[#3E6E48]">
+                        Page {noteNumber}
+                      </h3>
                       <div className="flex items-center gap-3">
                         <p className="text-gray-500 text-sm">
-                          {formatDateDisplay(note.date_created || note.updated_at)}
+                          {formatDateDisplay(
+                            note.date_created || note.updated_at,
+                          )}
                         </p>
                         <button
                           onClick={(e) => deleteNote(note.notes_id, e)}
@@ -294,7 +319,7 @@ function NotesContent() {
                       </div>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -315,13 +340,19 @@ function NotesContent() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <NotesContent />
     </Suspense>
-  )
+  );
 }

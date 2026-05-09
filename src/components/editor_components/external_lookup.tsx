@@ -1,65 +1,70 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { X, Search, Volume2, ExternalLink, BookOpen } from "lucide-react"
+import Image from "next/image";
+import { useState } from "react";
+import { X, Search, Volume2, ExternalLink, BookOpen } from "lucide-react";
 
 interface WikiResult {
-  extract: string
-  thumbnail?: { source: string }
-  content_urls?: { desktop?: { page?: string } }
-  title?: string
+  extract: string;
+  thumbnail?: { source: string };
+  content_urls?: { desktop?: { page?: string } };
+  title?: string;
 }
 
 interface DictMeaning {
-  partOfSpeech: string
-  definitions: { definition: string; example?: string }[]
+  partOfSpeech: string;
+  definitions: { definition: string; example?: string }[];
 }
 
 interface DictResult {
-  word: string
-  phonetics: { audio?: string; text?: string }[]
-  meanings: DictMeaning[]
+  word: string;
+  phonetics: { audio?: string; text?: string }[];
+  meanings: DictMeaning[];
 }
 
 interface Props {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default function ExternalLookupPanel({ onClose }: Props) {
-  const [query, setQuery] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [wiki, setWiki] = useState<WikiResult | null>(null)
-  const [dict, setDict] = useState<DictResult[] | null>(null)
+  const [wiki, setWiki] = useState<WikiResult | null>(null);
+  const [dict, setDict] = useState<DictResult[] | null>(null);
 
   const lookup = async () => {
-    const term = query.trim()
-    if (!term) return
+    const term = query.trim();
+    if (!term) return;
 
-    setLoading(true)
-    setError(null)
-    setWiki(null)
-    setDict(null)
+    setLoading(true);
+    setError(null);
+    setWiki(null);
+    setDict(null);
 
     try {
       const [wikiRes, dictRes] = await Promise.all([
-        fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`),
-        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(term)}`),
-      ])
+        fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`,
+        ),
+        fetch(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(term)}`,
+        ),
+      ]);
 
       // Wikipedia
       if (wikiRes.ok) {
-        const wikiData = await wikiRes.json()
-        setWiki(wikiData)
+        const wikiData = await wikiRes.json();
+        setWiki(wikiData);
       } else if (wikiRes.status === 404) {
         // Fallback: search API
         const searchRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&format=json&origin=*`
-        )
+          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&format=json&origin=*`,
+        );
         if (searchRes.ok) {
-          const searchData = await searchRes.json()
-          const firstResult = searchData?.query?.search?.[0]
+          const searchData = await searchRes.json();
+          const firstResult = searchData?.query?.search?.[0];
           if (firstResult) {
             setWiki({
               extract: firstResult.snippet.replace(/<[^>]+>/g, ""),
@@ -69,32 +74,32 @@ export default function ExternalLookupPanel({ onClose }: Props) {
                   page: `https://en.wikipedia.org/wiki/${encodeURIComponent(firstResult.title)}`,
                 },
               },
-            })
+            });
           }
         }
       }
 
       // Dictionary
       if (dictRes.ok) {
-        const dictData = await dictRes.json()
-        setDict(dictData)
+        const dictData = await dictRes.json();
+        setDict(dictData);
       }
       // 404 from dictionary is normal — just show nothing
 
       if (!wikiRes.ok && !dictRes.ok) {
-        setError("No results found for this term.")
+        setError("No results found for this term.");
       }
-    } catch (e) {
-      setError("Failed to fetch. Check your connection.")
+    } catch {
+      setError("Failed to fetch. Check your connection.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const playAudio = (url: string) => {
-    const audio = new Audio(url)
-    audio.play().catch(() => {})
-  }
+    const audio = new Audio(url);
+    audio.play().catch(() => {});
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -104,7 +109,10 @@ export default function ExternalLookupPanel({ onClose }: Props) {
           <BookOpen size={18} />
           <span>Lookup Tool</span>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-[#d0f0d8] rounded-lg transition-colors">
+        <button
+          onClick={onClose}
+          className="p-1 hover:bg-[#d0f0d8] rounded-lg transition-colors"
+        >
           <X size={16} className="text-[#71D285]" />
         </button>
       </div>
@@ -167,15 +175,23 @@ export default function ExternalLookupPanel({ onClose }: Props) {
               )}
             </div>
             {wiki.thumbnail?.source && (
-              <img
+              <Image
                 src={wiki.thumbnail.source}
                 alt={wiki.title ?? query}
+                width={640}
+                height={256}
                 className="w-full h-32 object-cover"
               />
             )}
             <div className="p-3">
-              {wiki.title && <p className="font-semibold text-sm text-gray-800 mb-1">{wiki.title}</p>}
-              <p className="text-sm text-gray-600 leading-relaxed line-clamp-6">{wiki.extract}</p>
+              {wiki.title && (
+                <p className="font-semibold text-sm text-gray-800 mb-1">
+                  {wiki.title}
+                </p>
+              )}
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-6">
+                {wiki.extract}
+              </p>
             </div>
           </div>
         )}
@@ -191,10 +207,14 @@ export default function ExternalLookupPanel({ onClose }: Props) {
             <div className="p-3 space-y-3">
               {/* Word + phonetics */}
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-base font-bold text-gray-800">{dict[0].word}</span>
+                <span className="text-base font-bold text-gray-800">
+                  {dict[0].word}
+                </span>
                 {dict[0].phonetics.map((ph, i) => (
                   <span key={i} className="flex items-center gap-1">
-                    {ph.text && <span className="text-sm text-gray-500">{ph.text}</span>}
+                    {ph.text && (
+                      <span className="text-sm text-gray-500">{ph.text}</span>
+                    )}
                     {ph.audio && (
                       <button
                         onClick={() => playAudio(ph.audio!)}
@@ -231,5 +251,5 @@ export default function ExternalLookupPanel({ onClose }: Props) {
         )}
       </div>
     </div>
-  )
+  );
 }

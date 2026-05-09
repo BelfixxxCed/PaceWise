@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import supabase from "@/supabase/supabase_client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -63,7 +64,7 @@ function Sidebar() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 w-full px-2">
-          <a
+          <Link
             href="/main/dashboard"
             className={`rounded-lg transition-all duration-200 py-2 px-3 ${
               title == 0
@@ -83,9 +84,9 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Dashboard
             </p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/main/schedule"
             className={`${
               title == 1
@@ -105,9 +106,9 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Study Schedule
             </p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/main/notes"
             className={`${
               title == 2
@@ -127,9 +128,9 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Notes
             </p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/main/flashcards"
             className={`${
               title == 3
@@ -149,7 +150,7 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Flashcards
             </p>
-          </a>
+          </Link>
         </div>
       </div>
 
