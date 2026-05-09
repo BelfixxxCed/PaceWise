@@ -1,10 +1,10 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination";
-import supabase from "@/supabase/supabase_client";
+import { Suspense, useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react"
+import { Pagination } from "@/components/ui/pagination"
+import supabase from "@/supabase/supabase_client"
 
 interface Note {
   notes_id: string;
@@ -59,15 +59,23 @@ function NotesContent() {
   }, [currentPage, totalPages]);
 
   useEffect(() => {
-    if (!subjectId) return;
+    if (!subjectId) {
+      setSubjectName("Subject");
+      setIsLoading(false);
+      return;
+    }
 
     const fetchSubjectName = async () => {
-      const { data } = await supabase
-        .from("subjects")
-        .select("subject_name")
-        .eq("subject_id", subjectId)
-        .single();
-      setSubjectName(data?.subject_name ?? "Subject");
+      try {
+        const { data } = await supabase
+          .from("subjects")
+          .select("subject_name")
+          .eq("subject_id", subjectId)
+          .single();
+        setSubjectName(data?.subject_name ?? "Subject");
+      } catch {
+        setSubjectName("Subject");
+      }
     };
 
     const fetchNotes = async () => {
@@ -110,7 +118,6 @@ function NotesContent() {
         setIsLoading(false);
       }
     };
-
     fetchSubjectName();
     fetchNotes();
   }, [subjectId]);
@@ -148,7 +155,7 @@ function NotesContent() {
   const deleteNote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await supabase.from("notes_pages").delete().eq("notes_id", id);
+      await supabase.from("notes").delete().eq("notes_id", id);
       setNotes((prev) => prev.filter((n) => n.notes_id !== id));
     } catch (err) {
       console.error("Failed to delete note:", err);

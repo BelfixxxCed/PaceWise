@@ -76,40 +76,41 @@ export default function TagsPanel({ noteId, onClose }: Props) {
     }
   };
 
-  const createAndAttach = async () => {
-    const name = newTagName.trim();
-    if (!name) return;
-    // If a tag with the same name already exists, show an error warning
-    const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      setErrorMsg(`Tag "${existing.name}" already exists.`);
-      return
+const createAndAttach = async () => {
+  const name = newTagName.trim();
+  if (!name) return;
+  setErrorMsg("");
+
+  // If tag already exists, just attach it (no error)
+  const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    if (!isAttached(existing.id)) {
+      await toggleTag(existing);
     }
-
-    setErrorMsg("")
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: created, error } = await supabase
-      .from("tags")
-      .insert([{ name, user_id: user.id }])
-      .select()
-      .single();
-
-    if (error || !created) return;
-
-    // Attach to note
-    await supabase
-      .from("tags-notes")
-      .insert([{ tag_id: created.id, notes_id: noteId }]);
-
-    setUserTags((prev) => [...prev, created]);
-    setNoteTags((prev) => [...prev, created]);
     setNewTagName("");
-  };
+    return;
+  }
+
+  // Otherwise create a new tag
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: created, error } = await supabase
+    .from("tags")
+    .insert([{ name, user_id: user.id }])
+    .select()
+    .single();
+
+  if (error || !created) return;
+
+  await supabase.from("tags-notes").insert([{ tag_id: created.id, notes_id: noteId }]);
+
+  setUserTags((prev) => [...prev, created]);
+  setNoteTags((prev) => [...prev, created]);
+  setNewTagName("");
+};
   const deleteTag = async (tag: TagItem, e: React.MouseEvent) => {
     e.stopPropagation()
     await supabase.from("tags-notes").delete().eq("tag_id", tag.id)
