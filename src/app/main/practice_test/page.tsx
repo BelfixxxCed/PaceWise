@@ -34,13 +34,14 @@ export default function PracticeTestPage() {
     return <LoadingModal message='Loading your progress...'/>
   }
 
-  const handleTakeQuiz = (id: string) => {
-    router.push(`/main/practice_test/quiz/${id}`);
-  };
+  // QUIZ FEATURE DISABLED
+  // const handleTakeQuiz = (id: string) => {
+  //   router.push(`/main/practice_test/quiz/${id}`);
+  // };
 
-  const handleViewSummary = (id: string) => {
-    router.push(`/main/practice_test/summary/${id}`);
-  };
+  // const handleViewSummary = (id: string) => {
+  //   router.push(`/main/practice_test/summary/${id}`);
+  // };
 
   return (
     <div className="min-h-screen p-8">
@@ -84,6 +85,7 @@ export default function PracticeTestPage() {
                     <td className="py-6 px-4">
                       <span className="text-gray-700 font-medium">{subject.score}/{subject.maxScore}</span>
                     </td>
+                    {/* QUIZ FEATURE DISABLED
                     <td className="py-6 px-4">
                       {subject.completed ? (
                         <button
@@ -100,6 +102,10 @@ export default function PracticeTestPage() {
                           take quiz
                         </button>
                       )}
+                    </td>
+                    */}
+                    <td className="py-6 px-4">
+                      <span className="text-gray-400 text-sm italic">quiz disabled</span>
                     </td>
                   </tr>
                 ))}

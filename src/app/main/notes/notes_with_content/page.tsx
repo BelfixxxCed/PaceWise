@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Trash2, Zap, Plus, ArrowLeft, Search, Tag, X } from "lucide-react"
+import { Trash2, Plus, ArrowLeft, Search, Tag, X } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import supabase from "@/supabase/supabase_client"
 
@@ -14,7 +14,7 @@ interface Note {
   tags?: { id: string; name: string }[]
 }
 
-export default function Page() {
+function NotesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const subjectId = searchParams.get("subject_id") ?? ""
@@ -171,6 +171,7 @@ export default function Page() {
             </div>
 
             <div className="flex gap-3">
+              {/* QUIZ FEATURE DISABLED
               <button
                 onClick={() => router.push(`/main/practice_test?subject_id=${subjectId}`)}
                 className="flex bg-[#71D285] gap-2 px-5 py-2 rounded-full text-white font-medium hover:bg-[#5eae6e] transition-colors items-center"
@@ -178,6 +179,7 @@ export default function Page() {
                 <Zap size={18} />
                 <span>generate test</span>
               </button>
+              */}
               <button
                 onClick={addNote}
                 className="flex bg-[#71D285] gap-2 px-5 py-2 rounded-full text-white font-medium hover:bg-[#5eae6e] transition-colors items-center"
@@ -303,5 +305,13 @@ export default function Page() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <NotesContent />
+    </Suspense>
   )
 }

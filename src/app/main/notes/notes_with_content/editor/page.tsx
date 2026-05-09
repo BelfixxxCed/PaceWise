@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft, BookOpen, Layers } from "lucide-react"
 import MyEditorPage from "@/components/editor_components/editor"
@@ -11,7 +11,7 @@ import CreateFlashcardModal from "@/components/editor_components/create_flashcar
 import TagsPanel from "@/components/editor_components/tags_panel"
 import { Tag } from "lucide-react"
 
-export default function Page() {
+function EditorContent() {
   const search = useSearchParams()
   const router = useRouter()
   const noteId = search?.get("note_id") ?? ""
@@ -78,7 +78,7 @@ export default function Page() {
             </button>
             <button
               onClick={() => setIsFlashcardOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#e8f8ec] text-[#3E6E48] rounded-lg hover:bg-[#d0f0d8] transition-colors font-medium text-sm"
             >
               <Layers size={16} />
               Create Flashcard
@@ -87,8 +87,8 @@ export default function Page() {
               onClick={() => setIsLookupOpen(!isLookupOpen)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                 isLookupOpen
-                  ? "bg-purple-600 text-white"
-                  : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                  ? "bg-[#3E6E48] text-white"
+                  : "bg-[#e8f8ec] text-[#3E6E48] hover:bg-[#d0f0d8]"
               }`}
             >
               <BookOpen size={16} />
@@ -134,5 +134,13 @@ export default function Page() {
         />
       )}
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <EditorContent />
+    </Suspense>
   )
 }

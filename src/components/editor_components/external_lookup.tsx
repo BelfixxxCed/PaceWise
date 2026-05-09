@@ -99,13 +99,13 @@ export default function ExternalLookupPanel({ onClose }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-purple-50">
-        <div className="flex items-center gap-2 text-purple-700 font-semibold">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-[#e8f8ec]">
+        <div className="flex items-center gap-2 text-[#3E6E48] font-semibold">
           <BookOpen size={18} />
           <span>Lookup Tool</span>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-purple-100 rounded-lg transition-colors">
-          <X size={16} className="text-purple-500" />
+        <button onClick={onClose} className="p-1 hover:bg-[#d0f0d8] rounded-lg transition-colors">
+          <X size={16} className="text-[#71D285]" />
         </button>
       </div>
 
@@ -118,12 +118,12 @@ export default function ExternalLookupPanel({ onClose }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && lookup()}
             placeholder="Search a term..."
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#71D285]"
           />
           <button
             onClick={lookup}
             disabled={loading}
-            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+            className="px-3 py-2 bg-[#71D285] text-white rounded-lg hover:bg-[#5eae6e] transition-colors disabled:opacity-50"
           >
             <Search size={16} />
           </button>
@@ -134,7 +134,7 @@ export default function ExternalLookupPanel({ onClose }: Props) {
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#71D285]" />
           </div>
         )}
 
@@ -160,7 +160,7 @@ export default function ExternalLookupPanel({ onClose }: Props) {
                   href={wiki.content_urls.desktop.page}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-500 hover:text-purple-700"
+                  className="text-[#71D285] hover:text-[#3E6E48]"
                 >
                   <ExternalLink size={13} />
                 </a>
@@ -198,7 +198,7 @@ export default function ExternalLookupPanel({ onClose }: Props) {
                     {ph.audio && (
                       <button
                         onClick={() => playAudio(ph.audio!)}
-                        className="p-1 rounded-full hover:bg-gray-100 text-purple-500"
+                        className="p-1 rounded-full hover:bg-gray-100 text-[#71D285]"
                         title="Play pronunciation"
                       >
                         <Volume2 size={14} />
@@ -211,7 +211,7 @@ export default function ExternalLookupPanel({ onClose }: Props) {
               {/* Meanings */}
               {dict[0].meanings.slice(0, 3).map((meaning, mi) => (
                 <div key={mi}>
-                  <p className="text-xs font-semibold text-purple-600 italic mb-1">
+                  <p className="text-xs font-semibold text-[#3E6E48] italic mb-1">
                     {meaning.partOfSpeech}
                   </p>
                   {meaning.definitions.slice(0, 2).map((def, di) => (
