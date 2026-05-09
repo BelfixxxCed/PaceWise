@@ -9,10 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function CreateFlashcardModal({
-  subjectId,
-  onClose,
-}: Props) {
+export default function CreateFlashcardModal({ subjectId, onClose }: Props) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [saving, setSaving] = useState(false);
@@ -48,7 +45,7 @@ export default function CreateFlashcardModal({
       setTimeout(() => {
         setSuccess(false);
       }, 2000);
-    } catch (err) {
+    } catch {
       setError("Failed to save flashcard. Try again.");
     } finally {
       setSaving(false);

@@ -34,4 +34,4 @@ export const PracticeQuizzesCard = ({
 };
 */
 
-export const PracticeQuizzesCard = (_props: { availableQuizzes: number; isLoading?: boolean }) => null;
+export const PracticeQuizzesCard = () => null;
