@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import supabase from "@/supabase/supabase_client";
@@ -45,7 +44,7 @@ function Sidebar() {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-20 hover:w-64 bg-[#71D285] z-50 group flex flex-col justify-between transition-all duration-300 ease-in-out">
+    <div className="fixed left-0 top-0 h-screen w-20 hover:w-64 bg-[#71D285] z-50 group flex flex-col justify-between transition-all duration-300 ease-in-out hover:shadow-[4px_0_20px_rgba(0,0,0,0.15)]">
       {/* This is for the upper sections */}
       <div className="flex flex-col items-center pt-6">
         <div className="flex items-center px-4 w-full">

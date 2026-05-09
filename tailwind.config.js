@@ -1,11 +1,14 @@
-/** @type {import('tailwindcss').Config} */
-const animate = require("tailwindcss-animate");
+import animate from "tailwindcss-animate";
+import scrollbarHide from "tailwind-scrollbar-hide";
 
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+const config = {
   darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {},
   },
-  plugins: [animate, require("tailwind-scrollbar-hide")],
+  plugins: [animate, scrollbarHide],
 };
+
+export default config;
