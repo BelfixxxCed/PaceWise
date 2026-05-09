@@ -59,7 +59,7 @@ export default function Page() {
 
         const data = await getAllSubjects(user.id);
         const transformedSubjects = data.map((subject) =>
-          transformSubjectFromDB(subject)
+          transformSubjectFromDB(subject),
         );
         setSubjects(transformedSubjects);
       } catch (err) {
@@ -73,23 +73,23 @@ export default function Page() {
     initializeData();
 
     // Listen for subject creations from other pages (notes page)
-    let channel: BroadcastChannel | null = null
+    let channel: BroadcastChannel | null = null;
     try {
-      channel = new BroadcastChannel("subjects")
+      channel = new BroadcastChannel("subjects");
       channel.onmessage = (ev) => {
-        const msg = ev.data
+        const msg = ev.data;
         if (msg?.type === "created") {
           // re-run initialization to refresh list
-          initializeData()
+          initializeData();
         }
-      }
-    } catch (e) {
+      };
+    } catch {
       // ignore if BroadcastChannel not supported
     }
 
     return () => {
-      if (channel) channel.close()
-    }
+      if (channel) channel.close();
+    };
   }, []);
 
   const handleAddSubject = async (newSubject: Omit<Subject, "id">) => {
@@ -125,7 +125,7 @@ export default function Page() {
 
       await updateSubject(updatedSubject.id, updates);
       setSubjects(
-        subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s))
+        subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s)),
       );
       setError(null);
     } catch (err) {
@@ -150,7 +150,7 @@ export default function Page() {
   };
 
   const filteredSubjects = subjects.filter((subject) =>
-    subject.title.toLowerCase().includes(searchQuery.toLowerCase())
+    subject.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);

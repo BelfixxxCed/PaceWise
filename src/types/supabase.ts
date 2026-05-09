@@ -43,7 +43,7 @@ export interface Database {
         Row: {
           notes_id: string;
           subject_id: string | null;
-          notes_json: any | null;
+          notes_json: unknown | null;
           date_created: string;
           last_opened: string | null;
           last_closed: string | null;

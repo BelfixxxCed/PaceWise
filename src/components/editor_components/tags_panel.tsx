@@ -1,51 +1,59 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { X, Tag, Plus } from "lucide-react"
-import supabase from "@/supabase/supabase_client"
+import { useState, useEffect } from "react";
+import { X, Tag, Plus } from "lucide-react";
+import supabase from "@/supabase/supabase_client";
 
 interface TagItem {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
+type TagLink = {
+  tags?: TagItem | TagItem[] | null;
+};
+
 interface Props {
-  noteId: string
-  onClose: () => void
+  noteId: string;
+  onClose: () => void;
 }
 
 export default function TagsPanel({ noteId, onClose }: Props) {
-  const [userTags, setUserTags] = useState<TagItem[]>([])
-  const [noteTags, setNoteTags] = useState<TagItem[]>([])
-  const [newTagName, setNewTagName] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [userTags, setUserTags] = useState<TagItem[]>([]);
+  const [noteTags, setNoteTags] = useState<TagItem[]>([]);
+  const [newTagName, setNewTagName] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Fetch user's tags and this note's tags
   useEffect(() => {
     const fetch = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) return
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
       const [{ data: allTags }, { data: noteTagLinks }] = await Promise.all([
         supabase.from("tags").select("id, name").eq("user_id", user.id),
-        supabase.from("tags-notes").select("tag_id, tags(id, name)").eq("notes_id", noteId),
-      ])
+        supabase
+          .from("tags-notes")
+          .select("tag_id, tags(id, name)")
+          .eq("notes_id", noteId),
+      ]);
 
-      setUserTags(allTags ?? [])
+      setUserTags(allTags ?? []);
 
-      const attached: TagItem[] = (noteTagLinks ?? [])
-        .map((tl: any) => tl.tags)
-        .filter(Boolean)
-        .flat()
-      setNoteTags(attached)
-      setLoading(false)
-    }
-    fetch()
-  }, [noteId])
+      const attached: TagItem[] = (noteTagLinks ?? []).flatMap((tl) => {
+        const tags = (tl as TagLink).tags;
+        if (!tags) return [];
+        return Array.isArray(tags) ? tags : [tags];
+      });
+      setNoteTags(attached);
+      setLoading(false);
+    };
+    fetch();
+  }, [noteId]);
 
-  const isAttached = (tagId: string) => noteTags.some((t) => t.id === tagId)
+  const isAttached = (tagId: string) => noteTags.some((t) => t.id === tagId);
 
   const toggleTag = async (tag: TagItem) => {
     if (isAttached(tag.id)) {
@@ -54,44 +62,46 @@ export default function TagsPanel({ noteId, onClose }: Props) {
         .from("tags-notes")
         .delete()
         .eq("tag_id", tag.id)
-        .eq("notes_id", noteId)
-      setNoteTags((prev) => prev.filter((t) => t.id !== tag.id))
+        .eq("notes_id", noteId);
+      setNoteTags((prev) => prev.filter((t) => t.id !== tag.id));
     } else {
       // Attach
       const { error } = await supabase
         .from("tags-notes")
-        .insert([{ tag_id: tag.id, notes_id: noteId }])
+        .insert([{ tag_id: tag.id, notes_id: noteId }]);
       if (!error) {
-        setNoteTags((prev) => [...prev, tag])
+        setNoteTags((prev) => [...prev, tag]);
       }
     }
-  }
+  };
 
   const createAndAttach = async () => {
-    const name = newTagName.trim()
-    if (!name) return
+    const name = newTagName.trim();
+    if (!name) return;
 
     const {
       data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return
+    } = await supabase.auth.getUser();
+    if (!user) return;
 
     // Create the tag
     const { data: created, error } = await supabase
       .from("tags")
       .insert([{ name, user_id: user.id }])
       .select()
-      .single()
+      .single();
 
-    if (error || !created) return
+    if (error || !created) return;
 
     // Attach to note
-    await supabase.from("tags-notes").insert([{ tag_id: created.id, notes_id: noteId }])
+    await supabase
+      .from("tags-notes")
+      .insert([{ tag_id: created.id, notes_id: noteId }]);
 
-    setUserTags((prev) => [...prev, created])
-    setNoteTags((prev) => [...prev, created])
-    setNewTagName("")
-  }
+    setUserTags((prev) => [...prev, created]);
+    setNoteTags((prev) => [...prev, created]);
+    setNewTagName("");
+  };
 
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -149,7 +159,9 @@ export default function TagsPanel({ noteId, onClose }: Props) {
         {/* All user tags to toggle */}
         {!loading && userTags.length > 0 && (
           <div>
-            <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Your Tags</p>
+            <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">
+              Your Tags
+            </p>
             <div className="flex flex-wrap gap-1">
               {userTags.map((tag) => (
                 <button
@@ -172,5 +184,5 @@ export default function TagsPanel({ noteId, onClose }: Props) {
         {loading && <p className="text-sm text-gray-400">Loading tags...</p>}
       </div>
     </div>
-  )
+  );
 }

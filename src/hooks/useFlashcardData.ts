@@ -7,6 +7,12 @@ type Flashcard = {
   answer: string;
 };
 
+type FlashcardRow = {
+  flashcard_id: string;
+  question: string;
+  answer: string;
+};
+
 const STORAGE_PREFIX = "flashcards_subject_";
 
 const getStorageKey = (subjectId: string) => `${STORAGE_PREFIX}${subjectId}`;
@@ -21,7 +27,7 @@ const saveToStorage = (
       getStorageKey(subjectId),
       JSON.stringify({ cards, subjectName }),
     );
-  } catch (e) {
+  } catch {
     // ignore
   }
 };
@@ -29,7 +35,7 @@ const saveToStorage = (
 const clearStorage = (subjectId: string) => {
   try {
     sessionStorage.removeItem(getStorageKey(subjectId));
-  } catch (e) {
+  } catch {
     // ignore
   }
 };
@@ -74,7 +80,7 @@ export function useFlashcardData(subjectId: string) {
         }
 
         const mappedCards =
-          data?.map((card: any) => ({
+          (data as FlashcardRow[] | null)?.map((card) => ({
             id: card.flashcard_id,
             question: card.question,
             answer: card.answer,

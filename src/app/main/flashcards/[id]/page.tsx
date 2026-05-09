@@ -12,8 +12,15 @@ export default function Page() {
   const params = useParams();
   const subjectId = params.id as string;
 
-  const { cards, subjectName, loading, error, setError, addCard, deleteCard, deleteDeck } =
-    useFlashcardData(subjectId);
+  const {
+    cards,
+    subjectName,
+    loading,
+    error,
+    addCard,
+    deleteCard,
+    deleteDeck,
+  } = useFlashcardData(subjectId);
 
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
