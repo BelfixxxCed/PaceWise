@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react"
+import { Trash2, Plus, ArrowLeft, Search, Tag, X } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import supabase from "@/supabase/supabase_client"
 
