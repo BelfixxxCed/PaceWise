@@ -79,7 +79,6 @@ export default function TagsPanel({ noteId, onClose }: Props) {
   const createAndAttach = async () => {
     const name = newTagName.trim();
     if (!name) return;
-
     // If a tag with the same name already exists, show an error warning
     const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase())
     if (existing) {
@@ -111,7 +110,6 @@ export default function TagsPanel({ noteId, onClose }: Props) {
     setNoteTags((prev) => [...prev, created]);
     setNewTagName("");
   };
-
   const deleteTag = async (tag: TagItem, e: React.MouseEvent) => {
     e.stopPropagation()
     await supabase.from("tags-notes").delete().eq("tag_id", tag.id)
