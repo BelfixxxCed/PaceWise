@@ -12,6 +12,11 @@ type Card = {
   subject: string;
 };
 
+type StoredFlashcard = {
+  question?: string;
+  answer?: string;
+};
+
 export default function Home() {
   const params = useParams();
   const subjectId = params.id as string;
@@ -30,14 +35,17 @@ export default function Home() {
         try {
           const raw = sessionStorage.getItem(storageKey);
           if (raw) {
-            const parsed = JSON.parse(raw);
+            const parsed = JSON.parse(raw) as {
+              cards?: StoredFlashcard[];
+              subjectName?: string;
+            };
             const cardsData = parsed.cards || [];
             const subjName = parsed.subjectName || subjectId;
 
-            const mapped = cardsData.map((c: any, i: number) => ({
+            const mapped = cardsData.map((c, i: number) => ({
               id: i + 1,
-              question: c.question,
-              answer: c.answer,
+              question: c.question ?? "",
+              answer: c.answer ?? "",
               subject: subjName,
             }));
             setCards(mapped);
@@ -45,7 +53,7 @@ export default function Home() {
             setLoading(false);
             return;
           }
-        } catch (e) {
+        } catch {
           // ignore sessionStorage errors and fall back to fetching
         }
 
@@ -67,10 +75,10 @@ export default function Home() {
 
         if (error) throw error;
 
-        const mapped = (data || []).map((row: any, i: number) => ({
+        const mapped = (data || []).map((row, i: number) => ({
           id: i + 1,
-          question: row.question,
-          answer: row.answer,
+          question: row.question as string,
+          answer: row.answer as string,
           subject: subjName,
         }));
 
@@ -83,12 +91,14 @@ export default function Home() {
               subjectName: subjName,
             }),
           );
-        } catch (e) {
+        } catch {
           // ignore
         }
 
         // Trigger streak update when they successfully load flashcards to study
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.access_token) {
           fetch("/api/streak", {
             method: "POST",
@@ -97,7 +107,6 @@ export default function Home() {
             },
           }).catch((err) => console.error("Failed to update streak:", err));
         }
-
       } finally {
         setLoading(false);
       }

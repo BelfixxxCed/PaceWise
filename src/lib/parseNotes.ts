@@ -6,14 +6,14 @@ interface SlateText {
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface SlateNode {
   type?: string;
   id?: string;
   children: (SlateText | SlateNode)[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 type SlateData = SlateNode[];
@@ -24,7 +24,7 @@ type SlateData = SlateNode[];
  * @returns Plain text string
  */
 export function slateToPlainText(
-  nodes: SlateData | SlateNode | SlateText
+  nodes: SlateData | SlateNode | SlateText,
 ): string {
   // Handle array of nodes
   if (Array.isArray(nodes)) {

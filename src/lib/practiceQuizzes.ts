@@ -15,5 +15,5 @@ export const getAvailableQuizzesDetails = async (userId: string) => {
 };
 */
 
-export const getAvailableQuizzesCount = async (_userId: string): Promise<number> => 0;
-export const getAvailableQuizzesDetails = async (_userId: string) => [];
+export const getAvailableQuizzesCount = async (): Promise<number> => 0;
+export const getAvailableQuizzesDetails = async () => [];

@@ -16,6 +16,6 @@ export default function QuizSection({ subjectId }: QuizPageProps) {
 }
 */
 
-export default function QuizSection(_props: { subjectId: string }) {
+export default function QuizSection() {
   return null;
 }
