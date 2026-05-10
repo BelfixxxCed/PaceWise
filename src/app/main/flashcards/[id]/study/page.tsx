@@ -6,13 +6,14 @@ import { Flashcard } from "@/components/flashcards/flashcard";
 import supabase from "@/supabase/supabase_client";
 
 type Card = {
-  id: number;
+  id: string;
   question: string;
   answer: string;
   subject: string;
 };
 
 type StoredFlashcard = {
+  id?: string;
   question?: string;
   answer?: string;
 };
@@ -43,7 +44,7 @@ export default function Home() {
             const subjName = parsed.subjectName || subjectId;
 
             const mapped = cardsData.map((c, i: number) => ({
-              id: i + 1,
+              id: c.id ?? String(i + 1),
               question: c.question ?? "",
               answer: c.answer ?? "",
               subject: subjName,
@@ -75,8 +76,8 @@ export default function Home() {
 
         if (error) throw error;
 
-        const mapped = (data || []).map((row, i: number) => ({
-          id: i + 1,
+        const mapped = (data || []).map((row) => ({
+          id: row.flashcard_id as string,
           question: row.question as string,
           answer: row.answer as string,
           subject: subjName,
@@ -138,7 +139,19 @@ export default function Home() {
       </div>
       <div className="max-w-5xl mx-auto mt-10">
         <div className=" rounded-3xl p-6 shadow-[10px_10px_30px_rgba(113,210,133,0.2)]">
-          <Flashcard cards={cards} subjectName={subjectName} />
+          {cards.length > 0 ? (
+            <Flashcard cards={cards} subjectName={subjectName} />
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-xl text-gray-500 mb-6">No flashcards found for this subject.</p>
+              <button 
+                onClick={() => window.location.href = `/main/flashcards/${subjectId}`}
+                className="px-8 py-3 bg-[#71D285] hover:bg-[#5eae6e] text-white rounded-full font-semibold transition"
+              >
+                Go Back and Add Cards
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
