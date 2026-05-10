@@ -9,41 +9,56 @@ interface SubjectRow {
   completed: boolean;
 }
 
-// Type definition for the database function return
-interface DbSubjectProgress {
-  subject_id: string;
-  subject_name: string;
-  progress: number;
-  completed: boolean;
-  score: number;
-  max_score: number;
-}
+// No longer used: DbSubjectProgress
 
 export const getSubjectsProgress = async (): Promise<SubjectRow[]> => {
   try {
-    // Call the database function
-    const { data, error } = await supabase.rpc('get_subjects_progress');
-    
-    if (error) {
-      console.error("Error fetching subjects progress:", error.message);
+    // 1. Get user id
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    if (!userId) return [];
+
+    // 2. Get subjects
+    const { data: subjects, error: subjectsErr } = await supabase
+      .from('subjects')
+      .select('subject_id, subject_name, score, total_items')
+      .eq('user_id', userId);
+
+    if (subjectsErr || !subjects) {
+      console.error("Error fetching subjects:", subjectsErr?.message);
       return [];
     }
 
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (subjects.length === 0) return [];
+
+    // 3. Get all flashcards for these subjects
+    const { data: flashcards, error: cardsErr } = await supabase
+      .from('flashcards')
+      .select('subject_id, is_reviewed')
+      .in('subject_id', subjects.map(s => s.subject_id));
+
+    if (cardsErr) {
+      console.error("Error fetching flashcards:", cardsErr.message);
       return [];
     }
 
-    // Cast and map database result to our interface
-    const dbResults = data as DbSubjectProgress[];
-    
-    return dbResults.map((row): SubjectRow => ({
-      id: row.subject_id,
-      name: row.subject_name,
-      progress: row.progress,
-      completed: row.completed,
-      score: row.score,
-      maxScore: row.max_score
-    }));
+    // 4. Calculate progress per subject
+    return subjects.map((subject): SubjectRow => {
+      const subjectCards = flashcards?.filter(f => f.subject_id === subject.subject_id) || [];
+      const totalCards = subjectCards.length;
+      const reviewedCards = subjectCards.filter(f => f.is_reviewed === true).length;
+      
+      const progress = totalCards > 0 ? Math.round((reviewedCards / totalCards) * 100) : 0;
+
+      return {
+        id: subject.subject_id,
+        name: subject.subject_name,
+        progress: progress,
+        completed: progress === 100,
+        score: subject.score || 0,
+        maxScore: subject.total_items || 0
+      };
+    });
   } catch (error) {
     console.error("Fatal error in getSubjectsProgress:", error);
     return [];

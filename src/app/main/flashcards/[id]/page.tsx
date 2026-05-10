@@ -34,7 +34,11 @@ export default function Page() {
   };
 
   const handleStudyMode = () => {
-    window.location.href = `/main/flashcards/${subjectId}/study`;
+    if (cards.length === 0) {
+      setIsAddingCard(true);
+    } else {
+      window.location.href = `/main/flashcards/${subjectId}/study`;
+    }
   };
 
   const handleDeleteDeck = () => {

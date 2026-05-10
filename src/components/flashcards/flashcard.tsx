@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import supabase from "@/supabase/supabase_client";
 
 interface Card {
-  id: number;
+  id: string;
   question: string;
   answer: string;
   subject: string;
@@ -28,6 +29,19 @@ export function Flashcard({ cards, subjectName }: FlashcardProps) {
       }
     };
   }, []);
+
+  const handleFlip = () => {
+    if (!isFlipped && currentCard?.id) {
+      supabase
+        .from("flashcards")
+        .update({ is_reviewed: true })
+        .eq("flashcard_id", currentCard.id)
+        .then(({ error }) => {
+          if (error) console.error("Error marking card as reviewed:", error);
+        });
+    }
+    setIsFlipped(!isFlipped);
+  };
 
   const currentCard = cards[currentIndex];
   const totalCards = cards.length;
@@ -98,7 +112,7 @@ export function Flashcard({ cards, subjectName }: FlashcardProps) {
       {/* Flashcard */}
       <div className="w-full max-w-2xl mb-12">
         <div
-          onClick={() => setIsFlipped(!isFlipped)}
+          onClick={handleFlip}
           className="relative h-96 cursor-pointer perspective"
         >
           <div

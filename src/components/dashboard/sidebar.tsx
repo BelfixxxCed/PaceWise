@@ -13,7 +13,9 @@ function Sidebar() {
   const router = useRouter();
 
   useEffect(() => {
-    if (path.startsWith("/main/notes")) {
+    if (path.startsWith("/main/dashboard")) {
+      setTitle(0);
+    } else if (path.startsWith("/main/notes")) {
       setTitle(2);
     } else if (path.startsWith("/main/schedule")) {
       setTitle(1);
