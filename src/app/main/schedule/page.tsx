@@ -13,19 +13,15 @@ import {
   createSubject,
   updateSubject,
   deleteSubject,
+  hasSubjectTimeConflict,
   transformSubjectFromDB,
   transformSubjectToDB,
+  type SubjectTimeBlock,
 } from "@/components/schedule/schedule_supabase_query";
 
-interface Subject {
+interface Subject extends SubjectTimeBlock {
   id: string;
   title: string;
-  startTime: string;
-  startMinutes: string;
-  startPeriod: "AM" | "PM";
-  endTime: string;
-  endMinutes: string;
-  endPeriod: "AM" | "PM";
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -99,6 +95,13 @@ export default function Page() {
     }
 
     try {
+      if (hasSubjectTimeConflict(subjects, newSubject)) {
+        setError(
+          "The subject you are trying to add is in conflict with an existing subject.",
+        );
+        return;
+      }
+
       const subjectData = transformSubjectToDB(newSubject, userId);
       const createdSubject = await createSubject(subjectData);
       const transformedSubject = transformSubjectFromDB(createdSubject);
@@ -113,6 +116,13 @@ export default function Page() {
 
   const handleEditSubject = async (updatedSubject: Subject) => {
     try {
+      if (hasSubjectTimeConflict(subjects, updatedSubject, updatedSubject.id)) {
+        setError(
+          "The subject you are trying to save is in conflict with an existing subject.",
+        );
+        return;
+      }
+
       const updates = {
         subject_name: updatedSubject.title,
         start_time: updatedSubject.startTime,

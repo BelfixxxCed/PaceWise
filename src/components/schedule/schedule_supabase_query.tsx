@@ -34,6 +34,113 @@ export interface NewSubjectInput {
   endPeriod: "AM" | "PM";
 }
 
+export interface SubjectTimeBlock {
+  id?: string;
+  startTime: string;
+  startMinutes: string;
+  startPeriod: "AM" | "PM";
+  endTime: string;
+  endMinutes: string;
+  endPeriod: "AM" | "PM";
+}
+
+interface SubjectTimeRange {
+  startMinutes: number;
+  endMinutes: number;
+}
+
+export function timeToMinutes(
+  hour: string,
+  minutes: string,
+  period: "AM" | "PM",
+): number {
+  const parsedHour = Number.parseInt(hour, 10);
+  const parsedMinutes = Number.parseInt(minutes, 10);
+  const normalizedHour = parsedHour % 12;
+  const offset = period === "PM" ? 12 * 60 : 0;
+
+  return normalizedHour * 60 + parsedMinutes + offset;
+}
+
+function getSubjectTimeRange(
+  subject: Pick<
+    DBSubject,
+    | "start_time"
+    | "start_minutes"
+    | "start_period"
+    | "end_time"
+    | "end_minutes"
+    | "end_period"
+  >,
+): SubjectTimeRange | null {
+  if (
+    !subject.start_time ||
+    !subject.start_minutes ||
+    !subject.start_period ||
+    !subject.end_time ||
+    !subject.end_minutes ||
+    !subject.end_period
+  ) {
+    return null;
+  }
+
+  return {
+    startMinutes: timeToMinutes(
+      subject.start_time,
+      subject.start_minutes,
+      subject.start_period,
+    ),
+    endMinutes: timeToMinutes(
+      subject.end_time,
+      subject.end_minutes,
+      subject.end_period,
+    ),
+  };
+}
+
+export function hasSubjectTimeConflict(
+  existingSubjects: SubjectTimeBlock[],
+  candidate: SubjectTimeBlock,
+  ignoreSubjectId?: string,
+): boolean {
+  const candidateRange = {
+    startMinutes: timeToMinutes(
+      candidate.startTime,
+      candidate.startMinutes,
+      candidate.startPeriod,
+    ),
+    endMinutes: timeToMinutes(
+      candidate.endTime,
+      candidate.endMinutes,
+      candidate.endPeriod,
+    ),
+  };
+
+  return existingSubjects.some((subject) => {
+    if (ignoreSubjectId && subject.id === ignoreSubjectId) {
+      return false;
+    }
+
+    const existingRange = {
+      startMinutes: timeToMinutes(
+        subject.startTime,
+        subject.startMinutes,
+        subject.startPeriod,
+      ),
+      endMinutes: timeToMinutes(
+        subject.endTime,
+        subject.endMinutes,
+        subject.endPeriod,
+      ),
+    };
+
+    return (
+      candidateRange.startMinutes < existingRange.endMinutes &&
+      existingRange.startMinutes < candidateRange.endMinutes
+    );
+  });
+}
+
 export async function getAllSubjects(userId: string): Promise<DBSubject[]> {
   const { data, error } = await supabase
     .from("subjects")
@@ -57,7 +164,7 @@ export async function getSubjectById(subjectId: string): Promise<DBSubject> {
 }
 
 export async function createSubject(
-  subject: Partial<DBSubject>
+  subject: Partial<DBSubject>,
 ): Promise<DBSubject> {
   const { data, error } = await supabase
     .from("subjects")
@@ -96,7 +203,7 @@ export async function createSubject(
 
 export async function updateSubject(
   subjectId: string,
-  updates: Partial<DBSubject>
+  updates: Partial<DBSubject>,
 ): Promise<DBSubject> {
   const { data, error } = await supabase
     .from("subjects")
@@ -121,7 +228,7 @@ export async function deleteSubject(subjectId: string): Promise<boolean> {
 
 export async function searchSubjects(
   userId: string,
-  searchTerm: string
+  searchTerm: string,
 ): Promise<DBSubject[]> {
   const { data, error } = await supabase
     .from("subjects")
@@ -149,7 +256,7 @@ export function transformSubjectFromDB(dbSubject: DBSubject): ComponentSubject {
 
 export function transformSubjectToDB(
   componentSubject: NewSubjectInput,
-  userId: string
+  userId: string,
 ): Partial<DBSubject> {
   return {
     user_id: userId,
