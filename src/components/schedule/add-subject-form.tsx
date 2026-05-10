@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
+import { timeToMinutes } from "@/components/schedule/schedule_supabase_query";
 
 interface AddSubjectFormProps {
   onAddSubject: (subject: {
@@ -47,8 +48,8 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
           setter === setStartTime
             ? "Start hour is required"
             : setter === setEndTime
-            ? "End hour is required"
-            : null;
+              ? "End hour is required"
+              : null;
         if (!remove) return prev;
 
         if (numValue === "") {
@@ -62,7 +63,7 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
 
   const handleMinutesChange = (
     value: string,
-    setter: (val: string) => void
+    setter: (val: string) => void,
   ) => {
     const numValue = value.replace(/\D/g, "").slice(0, 2);
     if (numValue === "" || validateMinutes(numValue)) {
@@ -72,8 +73,8 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
           setter === setStartMinutes
             ? "Start minutes are required"
             : setter === setEndMinutes
-            ? "End minutes are required"
-            : null;
+              ? "End minutes are required"
+              : null;
         if (!remove) return prev;
 
         if (numValue === "") {
@@ -94,6 +95,22 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
     if (!endTime) newErrors.push("End hour is required");
     if (!endMinutes || !validateMinutes(endMinutes))
       newErrors.push("End minutes must be between 00 and 59");
+
+    const hasCompleteTimeBlock =
+      startTime && startMinutes && endTime && endMinutes;
+    if (hasCompleteTimeBlock) {
+      const startTotalMinutes = timeToMinutes(
+        startTime,
+        startMinutes,
+        startPeriod,
+      );
+      const endTotalMinutes = timeToMinutes(endTime, endMinutes, endPeriod);
+
+      if (endTotalMinutes <= startTotalMinutes) {
+        newErrors.push("End time must be after start time.");
+      }
+    }
+
     setErrors(newErrors);
     return newErrors.length === 0;
   };

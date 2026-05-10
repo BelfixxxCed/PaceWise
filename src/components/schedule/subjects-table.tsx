@@ -125,6 +125,7 @@ export default function SubjectsTable({
       {editingSubject && (
         <EditModal
           subject={editingSubject}
+          subjects={subjects}
           onClose={() => setEditingSubject(null)}
           onSave={(updatedSubject) => {
             onEdit(updatedSubject);
