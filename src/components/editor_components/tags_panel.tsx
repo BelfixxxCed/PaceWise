@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react"
-import { X, Tag, Plus, Trash2 } from "lucide-react"
-import supabase from "@/supabase/supabase_client"
+import { useState, useEffect } from "react";
+import { X, Tag, Plus, Trash2 } from "lucide-react";
+import supabase from "@/supabase/supabase_client";
 
 interface TagItem {
   id: string;
@@ -22,6 +22,7 @@ export default function TagsPanel({ noteId, onClose }: Props) {
   const [userTags, setUserTags] = useState<TagItem[]>([]);
   const [noteTags, setNoteTags] = useState<TagItem[]>([]);
   const [newTagName, setNewTagName] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
   // Fetch user's tags and this note's tags
@@ -75,40 +76,41 @@ export default function TagsPanel({ noteId, onClose }: Props) {
     }
   };
 
-  const createAndAttach = async () => {
-    const name = newTagName.trim();
-    if (!name) return;
+const createAndAttach = async () => {
+  const name = newTagName.trim();
+  if (!name) return;
+  setErrorMsg("");
 
-    // If a tag with the same name already exists, just attach it
-    const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      if (!isAttached(existing.id)) {
-        await toggleTag(existing)
-      }
-      setNewTagName("")
-      return
+  // If tag already exists, just attach it (no error)
+  const existing = userTags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    if (!isAttached(existing.id)) {
+      await toggleTag(existing);
     }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: created, error } = await supabase
-      .from("tags")
-      .insert([{ name, user_id: user.id }])
-      .select()
-      .single();
-
-    if (error || !created) return;
-
-    await supabase.from("tags-notes").insert([{ tag_id: created.id, notes_id: noteId }])
-
-    setUserTags((prev) => [...prev, created]);
-    setNoteTags((prev) => [...prev, created]);
     setNewTagName("");
-  };
+    return;
+  }
 
+  // Otherwise create a new tag
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: created, error } = await supabase
+    .from("tags")
+    .insert([{ name, user_id: user.id }])
+    .select()
+    .single();
+
+  if (error || !created) return;
+
+  await supabase.from("tags-notes").insert([{ tag_id: created.id, notes_id: noteId }]);
+
+  setUserTags((prev) => [...prev, created]);
+  setNoteTags((prev) => [...prev, created]);
+  setNewTagName("");
+};
   const deleteTag = async (tag: TagItem, e: React.MouseEvent) => {
     e.stopPropagation()
     await supabase.from("tags-notes").delete().eq("tag_id", tag.id)
@@ -153,21 +155,29 @@ export default function TagsPanel({ noteId, onClose }: Props) {
         )}
 
         {/* Create new tag */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newTagName}
-            onChange={(e) => setNewTagName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && createAndAttach()}
-            placeholder="New tag name..."
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#71D285]"
-          />
-          <button
-            onClick={createAndAttach}
-            className="px-3 py-2 bg-[#71D285] text-white rounded-lg hover:bg-[#5eae6e] transition-colors"
-          >
-            <Plus size={16} />
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newTagName}
+              onChange={(e) => {
+                setNewTagName(e.target.value)
+                setErrorMsg("")
+              }}
+              onKeyDown={(e) => e.key === "Enter" && createAndAttach()}
+              placeholder="New tag name..."
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#71D285]"
+            />
+            <button
+              onClick={createAndAttach}
+              className="px-3 py-2 bg-[#71D285] text-white rounded-lg hover:bg-[#5eae6e] transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          {errorMsg && (
+            <p className="text-xs text-red-500 font-medium">{errorMsg}</p>
+          )}
         </div>
 
         {/* All user tags to toggle */}
@@ -193,9 +203,9 @@ export default function TagsPanel({ noteId, onClose }: Props) {
                   <button
                     onClick={(e) => deleteTag(tag, e)}
                     title="Delete tag"
-                    className="absolute right-1.5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:text-red-500 text-gray-400"
+                    className="absolute right-1.5 opacity-60 hover:opacity-100 transition-opacity rounded-full hover:text-red-500 text-gray-400"
                   >
-                    <Trash2 size={9} />
+                    <Trash2 size={11} />
                   </button>
                 </div>
               ))}

@@ -22,7 +22,8 @@ import {
   parseNotesToHTML,
   type EditorNode,
 } from "@/lib/parseNotes";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { Save } from "lucide-react";
 import supabase from "@/supabase/supabase_client";
 
 const AUTOSAVE_DELAY = 2000;
@@ -34,6 +35,8 @@ interface Props {
 export default function MyEditorPage({ noteId }: Props) {
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
   const isInitializing = useRef(true);
+  const [isUnsaved, setIsUnsaved] = useState(false);
+  const latestValueRef = useRef<EditorNode[]>([]);
 
   const editor = usePlateEditor({
     plugins: [
@@ -106,6 +109,8 @@ export default function MyEditorPage({ noteId }: Props) {
         if (!response.ok) {
           const data = await response.json();
           console.error("Error saving note:", data.error);
+        } else {
+          setIsUnsaved(false);
         }
       } catch (error) {
         console.error("Error saving note:", error);
@@ -130,6 +135,7 @@ export default function MyEditorPage({ noteId }: Props) {
   const handleEditorChange = useCallback(
     (newValue: Value) => {
       const nodes = newValue as unknown as EditorNode[];
+      latestValueRef.current = nodes;
 
       try {
         localStorage.setItem("editorContent", JSON.stringify(newValue));
@@ -140,6 +146,7 @@ export default function MyEditorPage({ noteId }: Props) {
       }
 
       if (isInitializing.current) return;
+      setIsUnsaved(true);
       scheduleSave(nodes);
     },
     [scheduleSave]
@@ -170,6 +177,20 @@ export default function MyEditorPage({ noteId }: Props) {
         <MarkToolbarButton nodeType="underline" tooltip="Underline (⌘+U)">
           U
         </MarkToolbarButton>
+        <div className="flex-1" />
+        <button
+          onClick={() => {
+            if (latestValueRef.current.length > 0) {
+              saveToBackend(latestValueRef.current);
+            }
+          }}
+          className={`ml-auto px-3 py-1.5 rounded-md text-white text-sm font-medium flex items-center gap-1 transition-colors ${
+            isUnsaved ? "bg-red-500 hover:bg-red-600" : "bg-[#71D285] hover:bg-[#5eae6e]"
+          }`}
+        >
+          <Save size={16} />
+          {isUnsaved ? "Unsaved Changes" : "Saved"}
+        </button>
       </FixedToolbar>
       <EditorContainer>
         <Editor placeholder="Type your amazing content here..." />

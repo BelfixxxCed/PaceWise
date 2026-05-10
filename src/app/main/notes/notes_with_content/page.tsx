@@ -106,8 +106,11 @@ function NotesContent() {
               return { ...note, tags };
             }),
           );
-
-          setNotes(notesWithTags);
+          setNotes(
+            [...notesWithTags].sort(
+              (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
+            )
+          );
         }
       } catch (err) {
         console.error("Failed to fetch notes:", err);
@@ -270,7 +273,7 @@ function NotesContent() {
           ) : (
             <div className="divide-y divide-gray-100">
               {paginatedNotes.map((note) => {
-                const noteNumber = pageNumberMap[note.notes_id] ?? 0
+                const noteNumber = pageNumberMap[note.notes_id] ?? 0;
                 return (
                   <div
                     key={note.notes_id}
