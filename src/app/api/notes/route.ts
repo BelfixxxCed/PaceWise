@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
     // Update an existing specific note by notes_id
     if (notes_id) {
-      const payload: any = { updated_at: now };
+      const payload: Record<string, unknown> = { updated_at: now };
       if (notes_json) payload.notes_json = notes_json;
       if (title !== null) payload.title = title;
 
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     // Create a new note for a subject
     if (subject_id) {
-      const payload: any = { subject_id, user_id: userId, updated_at: now };
+      const payload: Record<string, unknown> = { subject_id, user_id: userId, updated_at: now };
       if (notes_json) payload.notes_json = notes_json;
       if (title !== null) payload.title = title;
 
