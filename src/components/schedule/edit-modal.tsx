@@ -98,7 +98,7 @@ export default function EditModal({
     value: string,
   ) => {
     const numValue = Number.parseInt(value) || 0;
-    if (numValue >= 0 && numValue <= 60) {
+    if (numValue >= 0 && numValue <= 59) {
       handleInputChange(field, String(numValue).padStart(2, "0"));
     }
   };
@@ -145,7 +145,7 @@ export default function EditModal({
                 <input
                   type="number"
                   min="0"
-                  max="60"
+                  max="59"
                   value={formData.startMinutes}
                   onChange={(e) =>
                     handleMinutesChange("startMinutes", e.target.value)
@@ -193,7 +193,7 @@ export default function EditModal({
                 <input
                   type="number"
                   min="0"
-                  max="60"
+                  max="59"
                   value={formData.endMinutes}
                   onChange={(e) =>
                     handleMinutesChange("endMinutes", e.target.value)
