@@ -39,16 +39,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing request body" }, { status: 400 });
     }
 
-    let body: { subject_id?: string | null; notes_id?: string | null; notes_json?: unknown };
+    let body: { subject_id?: string | null; notes_id?: string | null; notes_json?: unknown; title?: string | null };
     try {
       body = JSON.parse(text);
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { subject_id = null, notes_id = null, notes_json = null } = body;
-    if (!notes_json) {
-      return NextResponse.json({ error: "Missing notes_json" }, { status: 400 });
+    const { subject_id = null, notes_id = null, notes_json = null, title = null } = body;
+    if (!notes_json && title === null) {
+      return NextResponse.json({ error: "Missing payload (notes_json or title required)" }, { status: 400 });
     }
 
     const authResult = await authenticateRequest(req);
@@ -59,9 +59,13 @@ export async function POST(req: Request) {
 
     // Update an existing specific note by notes_id
     if (notes_id) {
+      const payload: any = { updated_at: now };
+      if (notes_json) payload.notes_json = notes_json;
+      if (title !== null) payload.title = title;
+
       const { data, error } = await supabaseAdmin
         .from("notes_pages")
-        .update({ notes_json, updated_at: now })
+        .update(payload)
         .eq("notes_id", notes_id)
         .eq("user_id", userId)
         .select()
@@ -78,9 +82,13 @@ export async function POST(req: Request) {
 
     // Create a new note for a subject
     if (subject_id) {
+      const payload: any = { subject_id, user_id: userId, updated_at: now };
+      if (notes_json) payload.notes_json = notes_json;
+      if (title !== null) payload.title = title;
+
       const { data, error } = await supabaseAdmin
         .from("notes_pages")
-        .insert([{ subject_id, notes_json, user_id: userId, updated_at: now }])
+        .insert([payload])
         .select()
         .single();
 
