@@ -12,7 +12,7 @@ export const TimeStudiedCard = ({ hours, minutes, isLoading = false }: TimeStudi
       <div className="flex items-center gap-4">
         <div className="w-14 h-14 flex items-center justify-center">
           <Image
-            src="/reusable_ui_images/clock.svg"
+            src="/reusable_ui_images/Clock.svg"
             alt="Clock icon"
             width={70}
             height={70}
