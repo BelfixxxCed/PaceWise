@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Trash2, Plus, ArrowLeft, Tag, X } from "lucide-react"
+import { Trash2, Plus, ArrowLeft, Tag, X, Edit2 } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import supabase from "@/supabase/supabase_client"
 
@@ -12,6 +12,7 @@ interface Note {
   date_created: string;
   updated_at: string;
   tags?: { id: string; name: string }[];
+  title?: string;
 }
 
 type TagLink = {
@@ -27,6 +28,9 @@ function NotesContent() {
   const [subjectName, setSubjectName] = useState("Loading...");
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
@@ -155,10 +159,48 @@ function NotesContent() {
   const deleteNote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await supabase.from("notes").delete().eq("notes_id", id);
-      setNotes((prev) => prev.filter((n) => n.notes_id !== id));
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(`/api/notes?notes_id=${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.ok) {
+        setNotes((prev) => prev.filter((n) => n.notes_id !== id));
+      } else {
+        console.error("Failed to delete note via API");
+      }
     } catch (err) {
       console.error("Failed to delete note:", err);
+    }
+  };
+
+  const saveInlineTitle = async (id: string) => {
+    setEditingTitleId(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(`/api/notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ notes_id: id, title: tempTitle }),
+      });
+
+      if (res.ok) {
+        setNotes((prev) =>
+          prev.map((n) => (n.notes_id === id ? { ...n, title: tempTitle } : n))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to save inline title:", err);
     }
   };
 
@@ -293,9 +335,39 @@ function NotesContent() {
                     className="flex flex-col py-4 px-2 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
                   >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-[#3E6E48]">
-                        Page {noteNumber}
-                      </h3>
+                      {editingTitleId === note.notes_id ? (
+                        <input
+                          type="text"
+                          value={tempTitle}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => setTempTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === "Enter") saveInlineTitle(note.notes_id);
+                            if (e.key === "Escape") setEditingTitleId(null);
+                          }}
+                          onBlur={() => saveInlineTitle(note.notes_id)}
+                          className="text-lg font-semibold text-[#3E6E48] bg-white border-b-2 border-[#71D285] px-1 outline-none w-1/2"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 group/title">
+                          <h3 className="text-lg font-semibold text-[#3E6E48]">
+                            {note.title || `Page ${noteNumber}`}
+                          </h3>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTitleId(note.notes_id);
+                              setTempTitle(note.title || `Page ${noteNumber}`);
+                            }}
+                            className="p-1 opacity-0 group-hover/title:opacity-100 hover:bg-gray-200 rounded transition-all"
+                            aria-label="Edit title"
+                          >
+                            <Edit2 size={14} className="text-gray-500" />
+                          </button>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3">
                         <p className="text-gray-500 text-sm">
                           {formatDateDisplay(

@@ -44,10 +44,7 @@ export interface SubjectTimeBlock {
   endPeriod: "AM" | "PM";
 }
 
-interface SubjectTimeRange {
-  startMinutes: number;
-  endMinutes: number;
-}
+
 
 export function timeToMinutes(
   hour: string,
@@ -62,41 +59,7 @@ export function timeToMinutes(
   return normalizedHour * 60 + parsedMinutes + offset;
 }
 
-function getSubjectTimeRange(
-  subject: Pick<
-    DBSubject,
-    | "start_time"
-    | "start_minutes"
-    | "start_period"
-    | "end_time"
-    | "end_minutes"
-    | "end_period"
-  >,
-): SubjectTimeRange | null {
-  if (
-    !subject.start_time ||
-    !subject.start_minutes ||
-    !subject.start_period ||
-    !subject.end_time ||
-    !subject.end_minutes ||
-    !subject.end_period
-  ) {
-    return null;
-  }
 
-  return {
-    startMinutes: timeToMinutes(
-      subject.start_time,
-      subject.start_minutes,
-      subject.start_period,
-    ),
-    endMinutes: timeToMinutes(
-      subject.end_time,
-      subject.end_minutes,
-      subject.end_period,
-    ),
-  };
-}
 
 export function hasSubjectTimeConflict(
   existingSubjects: SubjectTimeBlock[],

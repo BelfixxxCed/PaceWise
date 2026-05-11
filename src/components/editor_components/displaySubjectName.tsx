@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import supabase from "@/supabase/supabase_client";
 
-export function DisplaySubjectName({ subject_id }: { subject_id: string }) {
+export function DisplaySubjectName({ subject_id, className }: { subject_id: string, className?: string }) {
   const [subjectName, set_subjectName] = useState("Loading...");
 
   const GET_subjectName = async (subject_id: string) => {
@@ -20,8 +20,6 @@ export function DisplaySubjectName({ subject_id }: { subject_id: string }) {
       return;
     }
 
-    console.log(data[0].subject_name);
-
     set_subjectName(data[0].subject_name);
   };
 
@@ -30,7 +28,7 @@ export function DisplaySubjectName({ subject_id }: { subject_id: string }) {
   }, [subject_id]);
 
   return (
-    <div className="poppins-extrabold text-[#8A8A8A] text-4xl">
+    <div className={className || "poppins-extrabold text-[#8A8A8A] text-4xl"}>
       {subjectName}
     </div>
   );

@@ -20,19 +20,38 @@ function EditorContent() {
   const [isLookupOpen, setIsLookupOpen] = useState(false)
   const [isFlashcardOpen, setIsFlashcardOpen] = useState(false)
   const [isTagsOpen, setIsTagsOpen] = useState(false)
+  const [noteTitle, setNoteTitle] = useState("")
 
   useEffect(() => {
     if (!noteId) return
-    const fetchSubjectId = async () => {
+    const fetchNoteMetadata = async () => {
       const { data } = await supabase
         .from("notes_pages")
-        .select("subject_id")
+        .select("subject_id, title")
         .eq("notes_id", noteId)
         .single()
-      if (data?.subject_id) setSubjectId(data.subject_id)
+      if (data) {
+        setSubjectId(data.subject_id)
+        setNoteTitle(data.title || "")
+      }
     }
-    fetchSubjectId()
+    fetchNoteMetadata()
   }, [noteId])
+
+  const handleTitleBlur = async () => {
+    if (!noteId) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    await fetch('/api/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ notes_id: noteId, title: noteTitle }),
+    })
+  }
 
   if (!noteId) {
     return (
@@ -97,12 +116,23 @@ function EditorContent() {
           </div>
         </div>
 
-        {/* Subject name */}
-        <div className="mb-6">
+        {/* Title and Subject name */}
+        <div className="mb-6 flex flex-col gap-1">
+          <input
+            type="text"
+            value={noteTitle}
+            onChange={(e) => setNoteTitle(e.target.value)}
+            onBlur={handleTitleBlur}
+            placeholder="Enter page title..."
+            className="text-4xl font-extrabold text-[#3E6E48] bg-transparent outline-none border-b-2 border-transparent focus:border-[#71D285] transition-colors pb-1 w-full placeholder-gray-400"
+          />
           {subjectId ? (
-            <DisplaySubjectName subject_id={subjectId} />
+            <DisplaySubjectName 
+               subject_id={subjectId} 
+               className="text-xl font-medium text-gray-500 poppins-semibold" 
+            />
           ) : (
-            <div className="h-10" />
+            <div className="h-6" />
           )}
         </div>
 
