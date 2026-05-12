@@ -10,6 +10,8 @@ import {
   createSubject,
   transformSubjectToDB,
   getAllSubjects,
+  hasSubjectTimeConflict,
+  type SubjectTimeBlock,
 } from "@/components/schedule/schedule_supabase_query"
 import supabase from "@/supabase/supabase_client"
 
@@ -25,7 +27,9 @@ export default function Page() {
   const router = useRouter()
 
   const [Subjects, setSubjects] = useState<NotesSubject[]>([])
+  const [subjectTimeBlocks, setSubjectTimeBlocks] = useState<SubjectTimeBlock[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [conflictError, setConflictError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const ITEMS_PER_PAGE = 6
@@ -44,6 +48,7 @@ export default function Page() {
   useEffect(() => {
     let channel: BroadcastChannel | null = null
 
+// sourcery skip: avoid-function-declarations-in-blocks
     async function fetchSubjects() {
       try {
         const {
@@ -57,6 +62,22 @@ export default function Page() {
           date_created: s.date_created ?? new Date().toISOString(),
           subject_name: s.subject_name,
         }))
+        const timeBlocks = data
+          .filter(
+            (s) =>
+              s.start_time && s.start_minutes && s.start_period &&
+              s.end_time && s.end_minutes && s.end_period,
+          )
+          .map((s) => ({
+            id: s.subject_id,
+            startTime: s.start_time!,
+            startMinutes: s.start_minutes!,
+            startPeriod: s.start_period!,
+            endTime: s.end_time!,
+            endMinutes: s.end_minutes!,
+            endPeriod: s.end_period!,
+          }))
+        setSubjectTimeBlocks(timeBlocks)
         setSubjects(mapped)
         setLoading(false)
       } catch {
@@ -130,6 +151,23 @@ export default function Page() {
     endPeriod: "AM" | "PM"
   }) => {
     try {
+      const candidate: SubjectTimeBlock = {
+        startTime: input.startTime,
+        startMinutes: input.startMinutes,
+        startPeriod: input.startPeriod,
+        endTime: input.endTime,
+        endMinutes: input.endMinutes,
+        endPeriod: input.endPeriod,
+      }
+
+      if (hasSubjectTimeConflict(subjectTimeBlocks, candidate)) {
+        setConflictError(
+          "The subject you are trying to add is in conflict with an existing subject.",
+        )
+        return
+      }
+      setConflictError(null)
+
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -166,6 +204,7 @@ export default function Page() {
       }
 
       setSubjects((prev) => [mapped, ...prev])
+      setSubjectTimeBlocks((prev) => [{ id: mapped.subject_id, ...candidate }, ...prev])
       setIsModalOpen(false)
     } catch (err) {
       console.error("Failed to create subject in DB", err)
@@ -250,10 +289,13 @@ export default function Page() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="w-full max-w-2xl p-6">
             <div className="bg-white rounded-3xl overflow-hidden shadow-lg">
-              <AddSubjectForm onAddSubject={handleAddSubjectSubmit} />
+              <AddSubjectForm
+                onAddSubject={handleAddSubjectSubmit}
+                externalError={conflictError ?? undefined}
+              />
               <div className="p-4 flex justify-end">
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => { setIsModalOpen(false); setConflictError(null) }}
                   className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
                 >
                   Cancel

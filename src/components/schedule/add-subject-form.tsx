@@ -15,9 +15,10 @@ interface AddSubjectFormProps {
     endMinutes: string;
     endPeriod: "AM" | "PM";
   }) => void;
+  externalError?: string;
 }
 
-export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
+export default function AddSubjectForm({ onAddSubject, externalError }: AddSubjectFormProps) {
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [startMinutes, setStartMinutes] = useState("00");
@@ -261,12 +262,13 @@ export default function AddSubjectForm({ onAddSubject }: AddSubjectFormProps) {
           </div>
         </div>
 
-        {errors.length > 0 && (
+        {(errors.length > 0 || externalError) && (
           <div className="bg-red-50 border border-red-200 rounded p-3">
             <ul className="text-red-600 text-sm space-y-1">
               {errors.map((error, idx) => (
                 <li key={idx}>• {error}</li>
               ))}
+              {externalError && <li>• {externalError}</li>}
             </ul>
           </div>
         )}
