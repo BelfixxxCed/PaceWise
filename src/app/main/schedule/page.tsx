@@ -13,19 +13,15 @@ import {
   createSubject,
   updateSubject,
   deleteSubject,
+  hasSubjectTimeConflict,
   transformSubjectFromDB,
   transformSubjectToDB,
+  type SubjectTimeBlock,
 } from "@/components/schedule/schedule_supabase_query";
 
-interface Subject {
+interface Subject extends SubjectTimeBlock {
   id: string;
   title: string;
-  startTime: string;
-  startMinutes: string;
-  startPeriod: "AM" | "PM";
-  endTime: string;
-  endMinutes: string;
-  endPeriod: "AM" | "PM";
 }
 
 const ITEMS_PER_PAGE = 4;
@@ -59,7 +55,7 @@ export default function Page() {
 
         const data = await getAllSubjects(user.id);
         const transformedSubjects = data.map((subject) =>
-          transformSubjectFromDB(subject)
+          transformSubjectFromDB(subject),
         );
         setSubjects(transformedSubjects);
       } catch (err) {
@@ -73,23 +69,23 @@ export default function Page() {
     initializeData();
 
     // Listen for subject creations from other pages (notes page)
-    let channel: BroadcastChannel | null = null
+    let channel: BroadcastChannel | null = null;
     try {
-      channel = new BroadcastChannel("subjects")
+      channel = new BroadcastChannel("subjects");
       channel.onmessage = (ev) => {
-        const msg = ev.data
+        const msg = ev.data;
         if (msg?.type === "created") {
           // re-run initialization to refresh list
-          initializeData()
+          initializeData();
         }
-      }
-    } catch (e) {
+      };
+    } catch {
       // ignore if BroadcastChannel not supported
     }
 
     return () => {
-      if (channel) channel.close()
-    }
+      if (channel) channel.close();
+    };
   }, []);
 
   const handleAddSubject = async (newSubject: Omit<Subject, "id">) => {
@@ -99,6 +95,13 @@ export default function Page() {
     }
 
     try {
+      if (hasSubjectTimeConflict(subjects, newSubject)) {
+        setError(
+          "The subject you are trying to add is in conflict with an existing subject.",
+        );
+        return;
+      }
+
       const subjectData = transformSubjectToDB(newSubject, userId);
       const createdSubject = await createSubject(subjectData);
       const transformedSubject = transformSubjectFromDB(createdSubject);
@@ -113,6 +116,13 @@ export default function Page() {
 
   const handleEditSubject = async (updatedSubject: Subject) => {
     try {
+      if (hasSubjectTimeConflict(subjects, updatedSubject, updatedSubject.id)) {
+        setError(
+          "The subject you are trying to save is in conflict with an existing subject.",
+        );
+        return;
+      }
+
       const updates = {
         subject_name: updatedSubject.title,
         start_time: updatedSubject.startTime,
@@ -125,7 +135,7 @@ export default function Page() {
 
       await updateSubject(updatedSubject.id, updates);
       setSubjects(
-        subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s))
+        subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s)),
       );
       setError(null);
     } catch (err) {
@@ -150,7 +160,7 @@ export default function Page() {
   };
 
   const filteredSubjects = subjects.filter((subject) =>
-    subject.title.toLowerCase().includes(searchQuery.toLowerCase())
+    subject.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import supabase from "@/supabase/supabase_client";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,11 +13,13 @@ function Sidebar() {
   const router = useRouter();
 
   useEffect(() => {
-    if (path.startsWith("/main/notes")) {
+    if (path.startsWith("/main/dashboard")) {
+      setTitle(0);
+    } else if (path.startsWith("/main/notes")) {
       setTitle(2);
     } else if (path.startsWith("/main/schedule")) {
       setTitle(1);
-    } else if (path.startsWith("/main/practice_test")) {
+    } else if (path.startsWith("/main/flashcards")) {
       setTitle(3);
     }
   }, [path]);
@@ -44,7 +46,7 @@ function Sidebar() {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-20 hover:w-64 bg-[#71D285] z-50 group flex flex-col justify-between transition-all duration-300 ease-in-out">
+    <div className="fixed left-0 top-0 h-screen w-20 hover:w-64 bg-[#71D285] z-50 group flex flex-col justify-between transition-all duration-300 ease-in-out hover:shadow-2xl hover:shadow-black">
       {/* This is for the upper sections */}
       <div className="flex flex-col items-center pt-6">
         <div className="flex items-center px-4 w-full">
@@ -64,7 +66,7 @@ function Sidebar() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 w-full px-2">
-          <a
+          <Link
             href="/main/dashboard"
             className={`rounded-lg transition-all duration-200 py-2 px-3 ${
               title == 0
@@ -84,9 +86,9 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Dashboard
             </p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/main/schedule"
             className={`${
               title == 1
@@ -106,9 +108,9 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Study Schedule
             </p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/main/notes"
             className={`${
               title == 2
@@ -128,10 +130,10 @@ function Sidebar() {
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
               Notes
             </p>
-          </a>
+          </Link>
 
-          <a
-            href="/main/practice_test"
+          <Link
+            href="/main/flashcards"
             className={`${
               title == 3
                 ? "bg-[#E9F5FE] font-bold"
@@ -140,17 +142,17 @@ function Sidebar() {
           >
             <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
               <Image
-                src="/reusable_ui_images/practice_test.svg"
-                alt="practice test button"
+                src="/reusable_ui_images/flashcards.svg"
+                alt="flashcards button"
                 width={29}
                 height={29}
                 className="object-contain"
               />
             </div>
             <p className="text-[#3E6E48] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              Practice Test
+              Flashcards
             </p>
-          </a>
+          </Link>
         </div>
       </div>
 

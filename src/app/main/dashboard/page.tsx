@@ -5,12 +5,13 @@ import supabase from "@/supabase/supabase_client";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 import { ProgressOverview, Course } from "@/components/dashboard/ProgressOverview";
 import { TimeStudiedCard } from "@/components/dashboard/TimeStudiedCard";
-import { PracticeQuizzesCard } from "@/components/dashboard/PracticeQuizzesCard";
+// import { PracticeQuizzesCard } from "@/components/dashboard/PracticeQuizzesCard";
 import { LastViewedCourseCard } from "@/components/dashboard/LastViewedCourseCard";
 import { getSubjectsProgress } from "@/lib/subjectsProgress";
-import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
+// import { getAvailableQuizzesCount } from "@/lib/practiceQuizzes";
 import { initTimeTracking, getCurrentTimeStudied } from "@/lib/timeTracker";
 import { getLastViewedNote } from "@/lib/getLastViewedNote";
+import { StreakCard } from "@/components/dashboard/StreakCard";
 
 const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -21,8 +22,8 @@ const Index = () => {
   const [isProgressLoading, setIsProgressLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [availableQuizzes, setAvailableQuizzes] = useState<number>(0);
-  const [isQuizzesLoading, setIsQuizzesLoading] = useState(false);
+  // const [availableQuizzes, setAvailableQuizzes] = useState<number>(0);
+  // const [isQuizzesLoading, setIsQuizzesLoading] = useState(false);
 
   const [timeStudied, setTimeStudied] = useState({ hours: 0, minutes: 0 });
 
@@ -104,24 +105,22 @@ const Index = () => {
     fetchProgress();
   }, [userId]);
 
-  // Fetch quizzes
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      if (!userId) return;
-
-      try {
-        setIsQuizzesLoading(true);
-        const count = await getAvailableQuizzesCount(userId);
-        setAvailableQuizzes(count);
-      } catch (err) {
-        console.error("Error fetching available quizzes:", err);
-      } finally {
-        setIsQuizzesLoading(false);
-      }
-    };
-
-    fetchQuizzes();
-  }, [userId]);
+  // QUIZ FEATURE DISABLED
+  // useEffect(() => {
+  //   const fetchQuizzes = async () => {
+  //     if (!userId) return;
+  //     try {
+  //       setIsQuizzesLoading(true);
+  //       const count = await getAvailableQuizzesCount(userId);
+  //       setAvailableQuizzes(count);
+  //     } catch (err) {
+  //       console.error("Error fetching available quizzes:", err);
+  //     } finally {
+  //       setIsQuizzesLoading(false);
+  //     }
+  //   };
+  //   fetchQuizzes();
+  // }, [userId]);
 
   // Fetch last viewed subject (Supports multi-page structure)
   useEffect(() => {
@@ -182,15 +181,18 @@ const Index = () => {
 
           {/* Right column: Stats and Last Viewed */}
           <div className="space-y-6">
+            <StreakCard />
             <TimeStudiedCard
               hours={timeStudied.hours}
               minutes={timeStudied.minutes}
             />
 
+            {/* QUIZ FEATURE DISABLED
             <PracticeQuizzesCard
               availableQuizzes={availableQuizzes}
               isLoading={isQuizzesLoading}
             />
+            */}
 
             {/* This component preserves your multi-page subject navigation */}
             <LastViewedCourseCard

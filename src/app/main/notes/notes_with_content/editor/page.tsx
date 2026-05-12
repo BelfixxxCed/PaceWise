@@ -1,26 +1,66 @@
 "use client"
 
-import React from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, BookOpen, Layers } from "lucide-react"
 import MyEditorPage from "@/components/editor_components/editor"
 import { DisplaySubjectName } from "@/components/editor_components/displaySubjectName"
+import supabase from "@/supabase/supabase_client"
+import ExternalLookupPanel from "@/components/editor_components/external_lookup"
+import CreateFlashcardModal from "@/components/editor_components/create_flashcard_modal"
+import TagsPanel from "@/components/editor_components/tags_panel"
+import { Tag } from "lucide-react"
 
-export default function Page() {
+function EditorContent() {
   const search = useSearchParams()
   const router = useRouter()
-  const subjectId = search?.get("subject_id") ?? search?.get("note_id") ?? ""
+  const noteId = search?.get("note_id") ?? ""
 
-  // If no id provided, navigate back to notes list
-  if (!subjectId) {
-    // show a simple fallback UI and a back button
+  const [subjectId, setSubjectId] = useState<string | null>(null)
+  const [isLookupOpen, setIsLookupOpen] = useState(false)
+  const [isFlashcardOpen, setIsFlashcardOpen] = useState(false)
+  const [isTagsOpen, setIsTagsOpen] = useState(false)
+  const [noteTitle, setNoteTitle] = useState("")
+
+  useEffect(() => {
+    if (!noteId) return
+    const fetchNoteMetadata = async () => {
+      const { data } = await supabase
+        .from("notes_pages")
+        .select("subject_id, title")
+        .eq("notes_id", noteId)
+        .single()
+      if (data) {
+        setSubjectId(data.subject_id)
+        setNoteTitle(data.title || "")
+      }
+    }
+    fetchNoteMetadata()
+  }, [noteId])
+
+  const handleTitleBlur = async () => {
+    if (!noteId) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    await fetch('/api/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ notes_id: noteId, title: noteTitle }),
+    })
+  }
+
+  if (!noteId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="mb-4 text-lg">No note selected.</p>
+          <p className="mb-4 text-lg text-gray-500">No note selected.</p>
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 rounded bg-[#71D285] text-white"
+            className="px-4 py-2 rounded-lg bg-[#71D285] text-white hover:bg-[#5eae6e] transition-colors"
           >
             Go back
           </button>
@@ -30,9 +70,11 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-4 flex items-center gap-4">
+    <div className="min-h-screen p-8 flex gap-6">
+      {/* Main editor area */}
+      <div className="flex-1 min-w-0">
+        {/* Top bar */}
+        <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
           <button
             onClick={() => router.back()}
             aria-label="Go back"
@@ -40,16 +82,95 @@ export default function Page() {
           >
             <ArrowLeft size={20} className="text-gray-700" />
           </button>
-          <div />
-        </div>
-        <div className="mb-6">
-          <DisplaySubjectName subject_id={subjectId} />
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setIsTagsOpen(!isTagsOpen)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                isTagsOpen
+                  ? "bg-[#3E6E48] text-white"
+                  : "bg-[#e8f8ec] text-[#3E6E48] hover:bg-[#d0f0d8]"
+              }`}
+            >
+              <Tag size={16} />
+              Tags
+            </button>
+            <button
+              onClick={() => setIsFlashcardOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#e8f8ec] text-[#3E6E48] rounded-lg hover:bg-[#d0f0d8] transition-colors font-medium text-sm"
+            >
+              <Layers size={16} />
+              Create Flashcard
+            </button>
+            <button
+              onClick={() => setIsLookupOpen(!isLookupOpen)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                isLookupOpen
+                  ? "bg-[#3E6E48] text-white"
+                  : "bg-[#e8f8ec] text-[#3E6E48] hover:bg-[#d0f0d8]"
+              }`}
+            >
+              <BookOpen size={16} />
+              Lookup
+            </button>
+          </div>
         </div>
 
+        {/* Title and Subject name */}
+        <div className="mb-6 flex flex-col gap-1">
+          <input
+            type="text"
+            value={noteTitle}
+            onChange={(e) => setNoteTitle(e.target.value)}
+            onBlur={handleTitleBlur}
+            placeholder="Enter page title..."
+            className="text-4xl font-extrabold text-[#3E6E48] bg-transparent outline-none border-b-2 border-transparent focus:border-[#71D285] transition-colors pb-1 w-full placeholder-gray-400"
+          />
+          {subjectId ? (
+            <DisplaySubjectName 
+               subject_id={subjectId} 
+               className="text-xl font-medium text-gray-500 poppins-semibold" 
+            />
+          ) : (
+            <div className="h-6" />
+          )}
+        </div>
+
+        {/* Tags panel (inline, above editor) */}
+        {isTagsOpen && (
+          <div className="mb-4">
+            <TagsPanel noteId={noteId} onClose={() => setIsTagsOpen(false)} />
+          </div>
+        )}
+
+        {/* Editor */}
         <div className="border-2 border-[#71D285] rounded-3xl p-4">
-          <MyEditorPage subjectId={subjectId} />
+          <MyEditorPage noteId={noteId} />
         </div>
       </div>
+
+      {/* Lookup side panel */}
+      {isLookupOpen && (
+        <div className="w-80 shrink-0 self-start sticky top-8 rounded-2xl shadow-xl border border-gray-200 overflow-hidden bg-white max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <ExternalLookupPanel onClose={() => setIsLookupOpen(false)} />
+        </div>
+      )}
+
+      {/* Flashcard modal */}
+      {isFlashcardOpen && subjectId && (
+        <CreateFlashcardModal
+          subjectId={subjectId}
+          onClose={() => setIsFlashcardOpen(false)}
+        />
+      )}
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <EditorContent />
+    </Suspense>
   )
 }

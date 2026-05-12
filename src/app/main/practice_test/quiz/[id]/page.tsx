@@ -1,3 +1,5 @@
+// QUIZ FEATURE DISABLED
+/*
 import { Suspense } from "react";
 import QuizSection from "@/components/quiz/quizSection";
 
@@ -15,4 +17,9 @@ export default async function QuizPage({
       </div>
     </div>
   );
+}
+*/
+
+export default async function QuizPage() {
+  return null;
 }

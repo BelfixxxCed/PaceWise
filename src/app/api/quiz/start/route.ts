@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+
+// QUIZ FEATURE DISABLED
+/*
 import { getUserId } from "@/lib/auth";
 import { supabaseAdmin } from "@/supabase/supabase_admin";
 
@@ -47,4 +50,9 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ quiz_id: quiz.quiz_id }, { status: 200 });
+}
+*/
+
+export async function POST() {
+  return NextResponse.json({ error: "Quiz feature is disabled" }, { status: 503 });
 }

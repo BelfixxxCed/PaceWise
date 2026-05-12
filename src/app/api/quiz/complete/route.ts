@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+
+// QUIZ FEATURE DISABLED
+/*
 import { getUserId } from "@/lib/auth";
 import { supabaseAdmin } from "@/supabase/supabase_admin";
+import { maybeIncrementStreak } from "@/lib/streak";
 
 export async function POST(req: Request) {
   const auth = await getUserId(req);
@@ -42,17 +46,15 @@ export async function POST(req: Request) {
   const totalQuestions = responses?.length || 0;
   const correctAnswers = responses?.filter((r) => r.iscorrect).length || 0;
   const wrongAnswers = totalQuestions - correctAnswers;
-  
+
   const { data: result, error: resultErr } = await supabaseAdmin
     .from("quiz_results")
-    .insert([
-      {
-        quiz_id,
-        correct_items: correctAnswers,
-        wrong_items: wrongAnswers,
-        date_of_completion: new Date().toISOString(),
-      },
-    ])
+    .insert([{
+      quiz_id,
+      correct_items: correctAnswers,
+      wrong_items: wrongAnswers,
+      date_of_completion: new Date().toISOString(),
+    }])
     .select()
     .single();
 
@@ -62,22 +64,24 @@ export async function POST(req: Request) {
 
   const { error: updateErr } = await supabaseAdmin
     .from("quizzes")
-    .update({
-      date: new Date().toISOString(),
-    })
+    .update({ date: new Date().toISOString() })
     .eq("quiz_id", quiz_id);
 
   if (updateErr) {
     return NextResponse.json({ error: updateErr.message }, { status: 500 });
   }
 
-  return NextResponse.json(
-    {
-      ok: true,
-      quiz_results_id: result.quiz_results_id,
-      correct_items: correctAnswers,
-      wrong_items: wrongAnswers,
-    },
-    { status: 200 }
-  );
+  await maybeIncrementStreak(userId);
+
+  return NextResponse.json({
+    ok: true,
+    quiz_results_id: result.quiz_results_id,
+    correct_items: correctAnswers,
+    wrong_items: wrongAnswers,
+  }, { status: 200 });
+}
+*/
+
+export async function POST() {
+  return NextResponse.json({ error: "Quiz feature is disabled" }, { status: 503 });
 }

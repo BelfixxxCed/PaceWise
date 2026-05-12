@@ -22,38 +22,21 @@ import {
   parseNotesToHTML,
   type EditorNode,
 } from "@/lib/parseNotes";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { Save } from "lucide-react";
 import supabase from "@/supabase/supabase_client";
-import { useSaveLastEdit } from "./timer";
-
-const DEFAULT_VALUE: Value = [
-  { children: [{ text: "Title" }], type: "h3" },
-  { children: [{ text: "This is a quote." }], type: "blockquote" },
-  {
-    type: "p",
-    children: [
-      { text: "Hello! Try out the " },
-      { text: "bold", bold: true },
-      { text: ", " },
-      { text: "italic", italic: true },
-      { text: ", and " },
-      { text: "underline", underline: true },
-      { text: " formatting." },
-    ],
-  },
-];
 
 const AUTOSAVE_DELAY = 2000;
 
 interface Props {
-  subjectId: string;
+  noteId: string;
 }
 
-export default function MyEditorPage({ subjectId }: Props) {
-  const [initialValue, setInitialValue] = useState<Value>(DEFAULT_VALUE);
+export default function MyEditorPage({ noteId }: Props) {
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
   const isInitializing = useRef(true);
-  const saveEditTime = useSaveLastEdit();
+  const [isUnsaved, setIsUnsaved] = useState(false);
+  const latestValueRef = useRef<EditorNode[]>([]);
 
   const editor = usePlateEditor({
     plugins: [
@@ -65,10 +48,9 @@ export default function MyEditorPage({ subjectId }: Props) {
       H3Plugin.withComponent(H3Element),
       BlockquotePlugin.withComponent(BlockquoteElement),
     ],
-    value: initialValue,
   });
 
-  // Get auth token once and cache it
+  // Get auth token
   const getAuthToken = useCallback(async () => {
     const {
       data: { session },
@@ -76,44 +58,41 @@ export default function MyEditorPage({ subjectId }: Props) {
     return session?.access_token;
   }, []);
 
-  // Load notes from backend
+  // Load note content from backend by noteId
   useEffect(() => {
-    const loadNotes = async () => {
+    const loadNote = async () => {
       isInitializing.current = true;
       try {
         const token = await getAuthToken();
-        if (!token) return;
+        if (!token || !noteId) return;
 
-        const url = `/api/notes${subjectId ? `?subject_id=${subjectId}` : ""}`;
-        const response = await fetch(url, {
+        const response = await fetch(`/api/notes?notes_id=${noteId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const result = await response.json();
         if (response.ok && result.data?.notes_json) {
-          const loadedValue = result.data.notes_json;
-          setInitialValue(loadedValue);
+          const loadedValue = result.data.notes_json as Value;
           editor.tf.setValue(loadedValue);
         }
       } catch (error) {
-        console.error("Error loading notes:", error);
+        console.error("Error loading note:", error);
       } finally {
-        // Use microtask to ensure setValue completes before enabling autosave
         queueMicrotask(() => {
           isInitializing.current = false;
         });
       }
     };
 
-    loadNotes();
-  }, [subjectId, editor, getAuthToken]);
+    loadNote();
+  }, [noteId, editor, getAuthToken]);
 
-  // Save to backend
+  // Save to backend by noteId
   const saveToBackend = useCallback(
     async (nodes: EditorNode[]) => {
       try {
         const token = await getAuthToken();
-        if (!token) return;
+        if (!token || !noteId) return;
 
         const response = await fetch("/api/notes", {
           method: "POST",
@@ -122,28 +101,28 @@ export default function MyEditorPage({ subjectId }: Props) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            subject_id: subjectId || null,
+            notes_id: noteId,
             notes_json: nodes,
           }),
         });
 
         if (!response.ok) {
           const data = await response.json();
-          console.error("Error saving notes:", data.error);
+          console.error("Error saving note:", data.error);
+        } else {
+          setIsUnsaved(false);
         }
       } catch (error) {
-        console.error("Error saving notes:", error);
+        console.error("Error saving note:", error);
       }
     },
-    [subjectId, getAuthToken]
+    [noteId, getAuthToken]
   );
 
   // Schedule debounced save
   const scheduleSave = useCallback(
     (nodes: EditorNode[]) => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
+      if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         saveToBackend(nodes);
         saveTimer.current = null;
@@ -156,8 +135,8 @@ export default function MyEditorPage({ subjectId }: Props) {
   const handleEditorChange = useCallback(
     (newValue: Value) => {
       const nodes = newValue as unknown as EditorNode[];
+      latestValueRef.current = nodes;
 
-      // Save to localStorage
       try {
         localStorage.setItem("editorContent", JSON.stringify(newValue));
         localStorage.setItem("editorContentPlain", parseNotesToText(nodes));
@@ -166,40 +145,22 @@ export default function MyEditorPage({ subjectId }: Props) {
         console.error("Error saving to localStorage:", error);
       }
 
-      // Skip autosave during initialization
       if (isInitializing.current) return;
-
+      setIsUnsaved(true);
       scheduleSave(nodes);
-      saveEditTime(subjectId);
     },
-    [scheduleSave, saveEditTime, subjectId]
+    [scheduleSave]
   );
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
+      if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, []);
 
-
-  const saveNote = () => {
-    if (!editor) return;
-    try {
-      const value = (editor?.children ?? null) as EditorNode[] | null;
-      if (value) localStorage.setItem("editorContent", JSON.stringify(value));
-    } catch (e) {
-      console.error('Failed to save note', e);
-    }
-  }
-
   return (
-    <Plate
-      editor={editor}
-      onChange={(x_val) => handleEditorChange(x_val.value)}
-    >
+    <Plate editor={editor} onChange={(x_val) => handleEditorChange(x_val.value)}>
       <FixedToolbar className="justify-start rounded-t-lg z-10">
         <ToolbarButton onClick={() => editor.tf.h1.toggle()}>H1</ToolbarButton>
         <ToolbarButton onClick={() => editor.tf.h2.toggle()}>H2</ToolbarButton>
@@ -216,7 +177,20 @@ export default function MyEditorPage({ subjectId }: Props) {
         <MarkToolbarButton nodeType="underline" tooltip="Underline (⌘+U)">
           U
         </MarkToolbarButton>
-        <ToolbarButton onClick={saveNote}>Save</ToolbarButton>
+        <div className="flex-1" />
+        <button
+          onClick={() => {
+            if (latestValueRef.current.length > 0) {
+              saveToBackend(latestValueRef.current);
+            }
+          }}
+          className={`ml-auto px-3 py-1.5 rounded-md text-white text-sm font-medium flex items-center gap-1 transition-colors ${
+            isUnsaved ? "bg-red-500 hover:bg-red-600" : "bg-[#71D285] hover:bg-[#5eae6e]"
+          }`}
+        >
+          <Save size={16} />
+          {isUnsaved ? "Unsaved Changes" : "Saved"}
+        </button>
       </FixedToolbar>
       <EditorContainer>
         <Editor placeholder="Type your amazing content here..." />
